@@ -4,13 +4,15 @@ LeagueHub is a portfolio-ready SaaS for managing amateur football leagues. It
 will eventually cover organizations, seasons, teams, rosters, fixtures, live
 match events, standings, statistics, and notifications.
 
-This repository is being built stage by stage as a learning project. Stage 1
-contains the backend foundation and a health endpoint; league domain models
-and authentication will be introduced in later stages.
+This repository is being built stage by stage as a learning project. Stage 2
+contains the backend foundation, a health endpoint, and Django session
+authentication for a future React SPA. League domain models and frontend
+authentication screens will be introduced in later stages.
 
 ## Stack
 
-- Backend: Python 3.13, Django 6.0, Django REST Framework, PostgreSQL, Redis
+- Backend: Python 3.13, Django 6.0, Django REST Framework, PostgreSQL, Redis,
+  django-cors-headers
 - Frontend: React, TypeScript, Vite, pnpm
 - Tooling: uv, Ruff, Docker Compose
 
@@ -56,9 +58,16 @@ pnpm dev --host 0.0.0.0
 ```
 
 The frontend is available at `http://localhost:5173` and the Django
-development server at `http://localhost:8000`. The Stage 1 API is available at
-`/api/v1/health/`, with interactive OpenAPI docs at `/api/docs/` and the raw
-schema at `/api/schema/`.
+development server at `http://localhost:8000`. The API health check is
+available at `/api/v1/health/`. Session authentication uses
+`/api/v1/auth/csrf/`, `/api/v1/auth/register/`, `/api/v1/auth/login/`,
+`/api/v1/auth/logout/`, and `/api/v1/auth/me/`. Interactive OpenAPI docs are
+at `/api/docs/` and the raw schema is at `/api/schema/`.
+
+For a browser client, request `/api/v1/auth/csrf/` first, then send the
+`csrftoken` cookie value in the `X-CSRFToken` header for register, login, and
+logout. Cross-origin requests must include credentials; local origins are
+configured through `DJANGO_CORS_ALLOWED_ORIGINS`.
 
 Development settings use PostgreSQL from Compose. Pytest uses an isolated
 in-memory SQLite database so unit tests do not depend on a running service.
