@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "apps.common",
     "apps.accounts",
+    "apps.organizations",
 ]
 
 MIDDLEWARE = [
@@ -136,4 +137,15 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "API foundation for the LeagueHub platform.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
+    "ENUM_NAME_OVERRIDES": {
+        "OrganizationRoleEnum": [
+            ("OWNER", "Owner"),
+            ("ADMIN", "Admin"),
+            ("MEMBER", "Member"),
+        ],
+        "ManagedOrganizationRoleEnum": [
+            "ADMIN",
+            "MEMBER",
+        ],
+    },
 }
