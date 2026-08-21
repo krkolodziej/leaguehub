@@ -1,0 +1,83 @@
+from django.urls import path
+
+from .views import (
+    LeagueDetailView,
+    LeagueListCreateView,
+    PlayerDetailView,
+    PlayerListCreateView,
+    RosterDetailView,
+    RosterListCreateView,
+    SeasonDetailView,
+    SeasonListCreateView,
+    SeasonTeamDetailView,
+    SeasonTeamListCreateView,
+    TeamDetailView,
+    TeamListCreateView,
+)
+
+urlpatterns = [
+    path(
+        "organizations/<int:organization_id>/leagues/",
+        LeagueListCreateView.as_view(),
+        name="league-list-create",
+    ),
+    path(
+        "organizations/<int:organization_id>/leagues/<int:league_id>/",
+        LeagueDetailView.as_view(),
+        name="league-detail",
+    ),
+    path(
+        "organizations/<int:organization_id>/leagues/<int:league_id>/seasons/",
+        SeasonListCreateView.as_view(),
+        name="season-list-create",
+    ),
+    path(
+        "organizations/<int:organization_id>/leagues/<int:league_id>/seasons/<int:season_id>/",
+        SeasonDetailView.as_view(),
+        name="season-detail",
+    ),
+    path(
+        "organizations/<int:organization_id>/teams/",
+        TeamListCreateView.as_view(),
+        name="team-list-create",
+    ),
+    path(
+        "organizations/<int:organization_id>/teams/<int:team_id>/",
+        TeamDetailView.as_view(),
+        name="team-detail",
+    ),
+    path(
+        "organizations/<int:organization_id>/players/",
+        PlayerListCreateView.as_view(),
+        name="player-list-create",
+    ),
+    path(
+        "organizations/<int:organization_id>/players/<int:player_id>/",
+        PlayerDetailView.as_view(),
+        name="player-detail",
+    ),
+    path(
+        "organizations/<int:organization_id>/leagues/<int:league_id>/seasons/"
+        "<int:season_id>/teams/",
+        SeasonTeamListCreateView.as_view(),
+        name="season-team-list-create",
+    ),
+    path(
+        "organizations/<int:organization_id>/leagues/<int:league_id>/seasons/"
+        "<int:season_id>/teams/<int:season_team_id>/",
+        SeasonTeamDetailView.as_view(),
+        name="season-team-detail",
+    ),
+    path(
+        "organizations/<int:organization_id>/leagues/<int:league_id>/seasons/"
+        "<int:season_id>/teams/<int:season_team_id>/roster/",
+        RosterListCreateView.as_view(),
+        name="roster-list-create",
+    ),
+    path(
+        "organizations/<int:organization_id>/leagues/<int:league_id>/seasons/"
+        "<int:season_id>/teams/<int:season_team_id>/roster/<int:roster_entry_id>/",
+        RosterDetailView.as_view(),
+        name="roster-detail",
+    ),
+]
