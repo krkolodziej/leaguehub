@@ -12,7 +12,14 @@ from apps.organizations.permissions import IsOrganizationMember
 
 from .models import League, Player, Season, SeasonTeam, Team
 from .permissions import IsCompetitionManager
+from .services.fixture_generator import (
+    FixtureGenerationError,
+    FixturesAlreadyGenerated,
+    RoundRobinFixtureGenerator,
+)
 from .serializers import (
+    FixtureGenerationSerializer,
+    FixtureSerializer,
     LeagueSerializer,
     PlayerSerializer,
     RosterEntrySerializer,
@@ -498,3 +505,49 @@ class RosterDetailView(CompetitionScopedAPIView):
         entry = get_object_or_404(season_team.roster_entries, pk=roster_entry_id)
         entry.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class FixtureListGenerateView(CompetitionScopedAPIView):
+    @extend_schema(responses=FixtureSerializer(many=True))
+    def get(self, request, organization_id, league_id, season_id):
+        _, _, season = self.get_season(
+            request,
+            organization_id,
+            league_id,
+            season_id,
+        )
+        fixtures = season.fixtures.select_related("home_team", "away_team").all()
+        return Response(FixtureSerializer(fixtures, many=True).data)
+
+    @extend_schema(
+        request=FixtureGenerationSerializer,
+        responses={201: FixtureSerializer(many=True)},
+    )
+    def post(self, request, organization_id, league_id, season_id):
+        organization, _, season = self.get_season(
+            request,
+            organization_id,
+            league_id,
+            season_id,
+        )
+        self.require_manager(request, organization)
+        serializer = FixtureGenerationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            fixtures = RoundRobinFixtureGenerator.generate_for_season(
+                season,
+                double_round_robin=serializer.validated_data["double_round_robin"],
+            )
+        except FixturesAlreadyGenerated as exc:
+            return Response(
+                {"detail": str(exc)},
+                status=status.HTTP_409_CONFLICT,
+            )
+        except FixtureGenerationError as exc:
+            raise ValidationError({"detail": str(exc)}) from exc
+
+        return Response(
+            FixtureSerializer(fixtures, many=True).data,
+            status=status.HTTP_201_CREATED,
+        )

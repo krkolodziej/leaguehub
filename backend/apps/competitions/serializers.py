@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import League, Player, RosterEntry, Season, SeasonTeam, Team
+from .models import Fixture, League, Player, RosterEntry, Season, SeasonTeam, Team
 
 
 class LeagueSerializer(serializers.ModelSerializer):
@@ -143,3 +143,41 @@ class RosterEntrySerializer(serializers.ModelSerializer):
                 "Player does not belong to this organization."
             )
         return player
+
+
+class FixtureSerializer(serializers.ModelSerializer):
+    season_id = serializers.IntegerField(read_only=True)
+    home_team_id = serializers.IntegerField(read_only=True)
+    home_team_name = serializers.CharField(source="home_team.name", read_only=True)
+    away_team_id = serializers.IntegerField(read_only=True)
+    away_team_name = serializers.CharField(source="away_team.name", read_only=True)
+
+    class Meta:
+        model = Fixture
+        fields = [
+            "id",
+            "season_id",
+            "round_number",
+            "leg",
+            "home_team_id",
+            "home_team_name",
+            "away_team_id",
+            "away_team_name",
+            "scheduled_at",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "season_id",
+            "home_team_id",
+            "home_team_name",
+            "away_team_id",
+            "away_team_name",
+            "created_at",
+            "updated_at",
+        ]
+
+
+class FixtureGenerationSerializer(serializers.Serializer):
+    double_round_robin = serializers.BooleanField(default=False)

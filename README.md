@@ -4,10 +4,11 @@ LeagueHub is a portfolio-ready SaaS for managing amateur football leagues. It
 will eventually cover organizations, seasons, teams, rosters, fixtures, live
 match events, standings, statistics, and notifications.
 
-This repository is being built stage by stage as a learning project. Stage 4
+This repository is being built stage by stage as a learning project. Stage 5
 contains the backend foundation, Django session authentication, multi-tenant
-organizations/RBAC, and the first league competition domain. Frontend screens
-and fixture generation will be introduced in later stages.
+organizations/RBAC, the league competition domain, and deterministic
+round-robin fixture generation. Frontend screens and match lifecycle events
+will be introduced in later stages.
 
 ## Stack
 
@@ -74,6 +75,11 @@ The competition domain contains `League`, `Season`, `Team`, `SeasonTeam`,
 `SeasonTeam`, while a player is attached to a seasonal team through
 `RosterEntry`. Competition API routes are nested under an organization and
 enforce the same backend membership and manager permissions.
+
+Fixture generation is available at the season-level `fixtures/` endpoint. A
+single round robin creates one pairing for every team pair; a double round
+robin adds the reversed home/away pairing. Generation is deterministic,
+transactional, and rejects a second request for the same season.
 
 For a browser client, request `/api/v1/auth/csrf/` first, then send the
 `csrftoken` cookie value in the `X-CSRFToken` header for register, login, and
