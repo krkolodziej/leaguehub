@@ -81,6 +81,14 @@ single round robin creates one pairing for every team pair; a double round
 robin adds the reversed home/away pairing. Generation is deterministic,
 transactional, and rejects a second request for the same season.
 
+Stage 6 adds the match lifecycle and match events. A fixture can have one
+`Match`, whose state moves through explicit transitions such as `SCHEDULED`,
+`LIVE`, `FINISHED`, `CANCELLED`, and `POSTPONED`. Events are accepted only for
+live matches, and a goal updates the corresponding home or away score in the
+same database transaction as the event. Players must be rostered for the
+fixture's season and team. Match and event routes are nested under the same
+organization/league/season scope and manager writes are enforced server-side.
+
 For a browser client, request `/api/v1/auth/csrf/` first, then send the
 `csrftoken` cookie value in the `X-CSRFToken` header for register, login, and
 logout. Cross-origin requests must include credentials; local origins are
