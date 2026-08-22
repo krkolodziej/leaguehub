@@ -7,6 +7,7 @@ from .views import (
     PlayerListCreateView,
     RosterDetailView,
     RosterListCreateView,
+    FixtureListGenerateView,
     SeasonDetailView,
     SeasonListCreateView,
     SeasonTeamDetailView,
@@ -79,5 +80,11 @@ urlpatterns = [
         "<int:season_id>/teams/<int:season_team_id>/roster/<int:roster_entry_id>/",
         RosterDetailView.as_view(),
         name="roster-detail",
+    ),
+    path(
+        "organizations/<int:organization_id>/leagues/<int:league_id>/seasons/"
+        "<int:season_id>/fixtures/",
+        FixtureListGenerateView.as_view(),
+        name="fixture-list-generate",
     ),
 ]

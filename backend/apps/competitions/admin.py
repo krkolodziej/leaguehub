@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import League, Player, RosterEntry, Season, SeasonTeam, Team
+from .models import Fixture, League, Player, RosterEntry, Season, SeasonTeam, Team
 
 
 @admin.register(League)
@@ -68,4 +68,25 @@ class RosterEntryAdmin(admin.ModelAdmin):
         "season_team__team__name",
     )
     autocomplete_fields = ("season_team", "player")
+    readonly_fields = ("created_at", "updated_at")
+
+
+@admin.register(Fixture)
+class FixtureAdmin(admin.ModelAdmin):
+    list_display = (
+        "season",
+        "round_number",
+        "leg",
+        "home_team",
+        "away_team",
+        "scheduled_at",
+    )
+    list_filter = ("season", "leg", "round_number")
+    search_fields = (
+        "season__name",
+        "season__league__name",
+        "home_team__name",
+        "away_team__name",
+    )
+    autocomplete_fields = ("season", "home_team", "away_team")
     readonly_fields = ("created_at", "updated_at")

@@ -179,3 +179,63 @@ class RosterEntry(TimestampedModel):
 
     def __str__(self):
         return f"{self.player} - {self.season_team}"
+
+
+class Fixture(TimestampedModel):
+    season = models.ForeignKey(
+        Season,
+        on_delete=models.CASCADE,
+        related_name="fixtures",
+    )
+    home_team = models.ForeignKey(
+        Team,
+        on_delete=models.CASCADE,
+        related_name="home_fixtures",
+    )
+    away_team = models.ForeignKey(
+        Team,
+        on_delete=models.CASCADE,
+        related_name="away_fixtures",
+    )
+    round_number = models.PositiveIntegerField()
+    leg = models.PositiveSmallIntegerField(default=1)
+    scheduled_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["season_id", "round_number", "leg", "id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["season", "home_team", "away_team"],
+                name="unique_fixture_direction_per_season",
+            ),
+            models.CheckConstraint(
+                condition=~models.Q(home_team=models.F("away_team")),
+                name="fixture_home_and_away_must_differ",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(leg__in=[1, 2]),
+                name="fixture_leg_must_be_one_or_two",
+            ),
+        ]
+
+    def clean(self):
+        super().clean()
+        if self.home_team_id and self.away_team_id:
+            if self.home_team_id == self.away_team_id:
+                raise ValidationError("Home and away teams must be different.")
+            if self.home_team.organization_id != self.away_team.organization_id:
+                raise ValidationError(
+                    "Home and away teams must belong to the same organization."
+                )
+        if self.season_id and self.home_team_id and self.away_team_id:
+            organization_id = self.season.league.organization_id
+            if (
+                self.home_team.organization_id != organization_id
+                or self.away_team.organization_id != organization_id
+            ):
+                raise ValidationError(
+                    "Fixture teams must belong to the season organization."
+                )
+
+    def __str__(self):
+        return f"Round {self.round_number}: {self.home_team} vs {self.away_team}"
