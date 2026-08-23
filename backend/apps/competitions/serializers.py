@@ -3,6 +3,36 @@ from rest_framework import serializers
 from .models import Fixture, League, Player, RosterEntry, Season, SeasonTeam, Team
 
 
+class StandingsSerializer(serializers.Serializer):
+    team_id = serializers.IntegerField()
+    team_name = serializers.CharField()
+    mp = serializers.IntegerField()
+    wins = serializers.IntegerField()
+    draws = serializers.IntegerField()
+    losses = serializers.IntegerField()
+    gf = serializers.IntegerField()
+    ga = serializers.IntegerField()
+    gd = serializers.IntegerField()
+    pts = serializers.IntegerField()
+
+
+class PlayerStatisticsSerializer(serializers.ModelSerializer):
+    goals = serializers.IntegerField(read_only=True)
+    yellow_cards = serializers.IntegerField(read_only=True)
+    red_cards = serializers.IntegerField(read_only=True)
+    full_name = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = Player
+        fields = [
+            "id",
+            "full_name",
+            "goals",
+            "yellow_cards",
+            "red_cards",
+        ]
+
+
 class LeagueSerializer(serializers.ModelSerializer):
     organization_id = serializers.IntegerField(read_only=True)
 

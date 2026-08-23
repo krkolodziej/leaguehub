@@ -4,11 +4,10 @@ LeagueHub is a portfolio-ready SaaS for managing amateur football leagues. It
 will eventually cover organizations, seasons, teams, rosters, fixtures, live
 match events, standings, statistics, and notifications.
 
-This repository is being built stage by stage as a learning project. Stage 5
+This repository is being built stage by stage as a learning project. It now
 contains the backend foundation, Django session authentication, multi-tenant
-organizations/RBAC, the league competition domain, and deterministic
-round-robin fixture generation. Frontend screens and match lifecycle events
-will be introduced in later stages.
+organizations/RBAC, the league competition domain, deterministic round-robin
+fixture generation, match lifecycle events, and derived standings/statistics.
 
 ## Stack
 
@@ -88,6 +87,15 @@ live matches, and a goal updates the corresponding home or away score in the
 same database transaction as the event. Players must be rostered for the
 fixture's season and team. Match and event routes are nested under the same
 organization/league/season scope and manager writes are enforced server-side.
+
+Stage 7 adds derived season standings at `standings/` using only `FINISHED`
+matches and the 3/1/0 scoring system. Rows are ordered by points, goal
+difference, goals for, team name, and team ID. Player statistics and the top
+scorers list are available under `statistics/players/` and
+`statistics/top-scorers/`; they aggregate finished-match goals and cards from
+`MatchEvent`. Appearances are intentionally not reported yet because the
+domain does not store lineups or minutes played. Aggregation queries use
+related filters and dedicated indexes to avoid N+1 event lookups.
 
 For a browser client, request `/api/v1/auth/csrf/` first, then send the
 `csrftoken` cookie value in the `X-CSRFToken` header for register, login, and

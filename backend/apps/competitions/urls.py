@@ -14,6 +14,9 @@ from .views import (
     SeasonTeamListCreateView,
     TeamDetailView,
     TeamListCreateView,
+    SeasonPlayerStatisticsView,
+    SeasonStandingsView,
+    SeasonTopScorersView,
 )
 
 urlpatterns = [
@@ -86,5 +89,23 @@ urlpatterns = [
         "<int:season_id>/fixtures/",
         FixtureListGenerateView.as_view(),
         name="fixture-list-generate",
+    ),
+    path(
+        "organizations/<int:organization_id>/leagues/<int:league_id>/seasons/"
+        "<int:season_id>/standings/",
+        SeasonStandingsView.as_view(),
+        name="season-standings",
+    ),
+    path(
+        "organizations/<int:organization_id>/leagues/<int:league_id>/seasons/"
+        "<int:season_id>/statistics/players/",
+        SeasonPlayerStatisticsView.as_view(),
+        name="season-player-statistics",
+    ),
+    path(
+        "organizations/<int:organization_id>/leagues/<int:league_id>/seasons/"
+        "<int:season_id>/statistics/top-scorers/",
+        SeasonTopScorersView.as_view(),
+        name="season-top-scorers",
     ),
 ]
