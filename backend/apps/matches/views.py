@@ -6,6 +6,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.common.pagination import response_for_queryset
+from apps.common.query_params import apply_query_options
+
 from apps.competitions.models import Season
 from apps.competitions.permissions import IsCompetitionManager
 from apps.organizations.models import Organization
@@ -65,7 +68,37 @@ class MatchListCreateView(MatchAccessMixin, APIView):
         matches = Match.objects.filter(fixture__season=season).select_related(
             "fixture__home_team", "fixture__away_team"
         )
-        return Response(MatchSerializer(matches, many=True).data)
+        match_status = request.query_params.get("status")
+        if match_status:
+            allowed_statuses = {choice[0] for choice in Match.Status.choices}
+            requested_statuses = {
+                value.strip().upper()
+                for value in match_status.split(",")
+                if value.strip()
+            }
+            invalid = requested_statuses - allowed_statuses
+            if invalid:
+                raise ValidationError(
+                    {"status": f"Unsupported status value(s): {', '.join(sorted(invalid))}."}
+                )
+            matches = matches.filter(status__in=requested_statuses)
+        matches = apply_query_options(
+            matches,
+            request,
+            ordering_fields=(
+                "status",
+                "home_score",
+                "away_score",
+                "fixture__round_number",
+                "fixture__scheduled_at",
+            ),
+            default_ordering=(
+                "fixture__round_number",
+                "fixture__leg",
+                "id",
+            ),
+        )
+        return response_for_queryset(matches, request, MatchSerializer, view=self)
 
     @extend_schema(request=MatchCreateSerializer, responses={201: MatchSerializer})
     def post(self, request, organization_id, league_id, season_id):
@@ -79,7 +112,10 @@ class MatchListCreateView(MatchAccessMixin, APIView):
         try:
             match = create_match_from_fixture(fixture)
         except MatchLifecycleError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_409_CONFLICT)
+            return Response(
+                {"detail": str(exc), "code": "conflict"},
+                status=status.HTTP_409_CONFLICT,
+            )
         match = Match.objects.select_related("fixture__home_team", "fixture__away_team").get(pk=match.pk)
         return Response(MatchSerializer(match).data, status=status.HTTP_201_CREATED)
 
@@ -127,7 +163,13 @@ class MatchEventListCreateView(MatchAccessMixin, APIView):
     def get(self, request, organization_id, league_id, season_id, match_id):
         _, _, match = self.get_match(request, organization_id, league_id, season_id, match_id)
         events = match.events.select_related("team", "player", "related_player")
-        return Response(MatchEventSerializer(events, many=True).data)
+        events = apply_query_options(
+            events,
+            request,
+            ordering_fields=("minute", "event_type", "created_at"),
+            default_ordering=("minute", "id"),
+        )
+        return response_for_queryset(events, request, MatchEventSerializer, view=self)
 
     @extend_schema(request=MatchEventSerializer, responses={201: MatchEventSerializer})
     def post(self, request, organization_id, league_id, season_id, match_id):

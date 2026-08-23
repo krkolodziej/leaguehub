@@ -97,6 +97,15 @@ scorers list are available under `statistics/players/` and
 domain does not store lineups or minutes played. Aggregation queries use
 related filters and dedicated indexes to avoid N+1 event lookups.
 
+Stage 8 hardens collection endpoints with optional page-number pagination.
+Add `page=1&page_size=20` to receive `count`, `next`, `previous`, and
+`results`; without those parameters, the existing list response remains
+available. Organizations, leagues, seasons, teams, players, rosters, fixtures,
+matches, standings, and player statistics support safe search/order options
+where they are meaningful. Match collections also accept comma-separated
+status filters. Invalid query parameters and other API exceptions use a
+consistent `detail`, `code`, and (for validation) `fields` response shape.
+
 For a browser client, request `/api/v1/auth/csrf/` first, then send the
 `csrftoken` cookie value in the `X-CSRFToken` header for register, login, and
 logout. Cross-origin requests must include credentials; local origins are
