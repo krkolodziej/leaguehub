@@ -1,4 +1,5 @@
 from django.db import IntegrityError, transaction
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
@@ -6,6 +7,9 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from apps.common.pagination import response_for_queryset
+from apps.common.query_params import apply_query_options
 
 from apps.organizations.models import Organization
 from apps.organizations.permissions import IsOrganizationMember
@@ -106,8 +110,14 @@ class LeagueListCreateView(CompetitionScopedAPIView):
     @extend_schema(responses=LeagueSerializer(many=True))
     def get(self, request, organization_id):
         organization = self.get_organization(request, organization_id)
-        leagues = organization.leagues.all()
-        return Response(LeagueSerializer(leagues, many=True).data)
+        leagues = apply_query_options(
+            organization.leagues.all(),
+            request,
+            search_fields=("name", "slug"),
+            ordering_fields=("name", "slug", "created_at"),
+            default_ordering=("name", "id"),
+        )
+        return response_for_queryset(leagues, request, LeagueSerializer, view=self)
 
     @extend_schema(request=LeagueSerializer, responses={201: LeagueSerializer})
     def post(self, request, organization_id):
@@ -146,8 +156,14 @@ class SeasonListCreateView(CompetitionScopedAPIView):
     @extend_schema(responses=SeasonSerializer(many=True))
     def get(self, request, organization_id, league_id):
         _, league = self.get_league(request, organization_id, league_id)
-        seasons = league.seasons.all()
-        return Response(SeasonSerializer(seasons, many=True).data)
+        seasons = apply_query_options(
+            league.seasons.all(),
+            request,
+            search_fields=("name",),
+            ordering_fields=("name", "start_date", "end_date"),
+            default_ordering=("-start_date", "name", "id"),
+        )
+        return response_for_queryset(seasons, request, SeasonSerializer, view=self)
 
     @extend_schema(request=SeasonSerializer, responses={201: SeasonSerializer})
     def post(self, request, organization_id, league_id):
@@ -201,8 +217,14 @@ class TeamListCreateView(CompetitionScopedAPIView):
     @extend_schema(responses=TeamSerializer(many=True))
     def get(self, request, organization_id):
         organization = self.get_organization(request, organization_id)
-        teams = organization.teams.all()
-        return Response(TeamSerializer(teams, many=True).data)
+        teams = apply_query_options(
+            organization.teams.all(),
+            request,
+            search_fields=("name", "slug"),
+            ordering_fields=("name", "slug", "created_at"),
+            default_ordering=("name", "id"),
+        )
+        return response_for_queryset(teams, request, TeamSerializer, view=self)
 
     @extend_schema(request=TeamSerializer, responses={201: TeamSerializer})
     def post(self, request, organization_id):
@@ -244,8 +266,14 @@ class PlayerListCreateView(CompetitionScopedAPIView):
     @extend_schema(responses=PlayerSerializer(many=True))
     def get(self, request, organization_id):
         organization = self.get_organization(request, organization_id)
-        players = organization.players.all()
-        return Response(PlayerSerializer(players, many=True).data)
+        players = apply_query_options(
+            organization.players.all(),
+            request,
+            search_fields=("first_name", "last_name"),
+            ordering_fields=("first_name", "last_name", "date_of_birth"),
+            default_ordering=("last_name", "first_name", "id"),
+        )
+        return response_for_queryset(players, request, PlayerSerializer, view=self)
 
     @extend_schema(request=PlayerSerializer, responses={201: PlayerSerializer})
     def post(self, request, organization_id):
@@ -301,8 +329,19 @@ class SeasonTeamListCreateView(CompetitionScopedAPIView):
             league_id,
             season_id,
         )
-        season_teams = season.season_teams.select_related("team").all()
-        return Response(SeasonTeamSerializer(season_teams, many=True).data)
+        season_teams = apply_query_options(
+            season.season_teams.select_related("team").all(),
+            request,
+            search_fields=("team__name", "team__slug"),
+            ordering_fields=("team__name", "created_at"),
+            default_ordering=("team__name", "id"),
+        )
+        return response_for_queryset(
+            season_teams,
+            request,
+            SeasonTeamSerializer,
+            view=self,
+        )
 
     @extend_schema(
         request=SeasonTeamSerializer,
@@ -394,8 +433,19 @@ class RosterListCreateView(CompetitionScopedAPIView):
             season_id,
             season_team_id,
         )
-        entries = season_team.roster_entries.select_related("player").all()
-        return Response(RosterEntrySerializer(entries, many=True).data)
+        entries = apply_query_options(
+            season_team.roster_entries.select_related("player").all(),
+            request,
+            search_fields=("player__first_name", "player__last_name", "position"),
+            ordering_fields=("shirt_number", "position", "created_at"),
+            default_ordering=("shirt_number", "id"),
+        )
+        return response_for_queryset(
+            entries,
+            request,
+            RosterEntrySerializer,
+            view=self,
+        )
 
     @extend_schema(
         request=RosterEntrySerializer,
@@ -521,7 +571,27 @@ class FixtureListGenerateView(CompetitionScopedAPIView):
             season_id,
         )
         fixtures = season.fixtures.select_related("home_team", "away_team").all()
-        return Response(FixtureSerializer(fixtures, many=True).data)
+        round_number = request.query_params.get("round")
+        if round_number:
+            try:
+                fixtures = fixtures.filter(round_number=int(round_number))
+            except ValueError as exc:
+                raise ValidationError({"round": "Round must be an integer."}) from exc
+        team_id = request.query_params.get("team")
+        if team_id:
+            try:
+                fixtures = fixtures.filter(
+                    Q(home_team_id=int(team_id)) | Q(away_team_id=int(team_id))
+                )
+            except ValueError as exc:
+                raise ValidationError({"team": "Team must be an integer ID."}) from exc
+        fixtures = apply_query_options(
+            fixtures,
+            request,
+            ordering_fields=("round_number", "leg", "scheduled_at"),
+            default_ordering=("round_number", "leg", "id"),
+        )
+        return response_for_queryset(fixtures, request, FixtureSerializer, view=self)
 
     @extend_schema(
         request=FixtureGenerationSerializer,
@@ -545,7 +615,7 @@ class FixtureListGenerateView(CompetitionScopedAPIView):
             )
         except FixturesAlreadyGenerated as exc:
             return Response(
-                {"detail": str(exc)},
+                {"detail": str(exc), "code": "conflict"},
                 status=status.HTTP_409_CONFLICT,
             )
         except FixtureGenerationError as exc:
@@ -566,7 +636,13 @@ class SeasonStandingsView(CompetitionScopedAPIView):
             league_id,
             season_id,
         )
-        return Response(StandingsSerializer(get_season_standings(season), many=True).data)
+        standings = get_season_standings(season)
+        return response_for_queryset(
+            standings,
+            request,
+            StandingsSerializer,
+            view=self,
+        )
 
 
 class SeasonPlayerStatisticsView(CompetitionScopedAPIView):
@@ -579,7 +655,12 @@ class SeasonPlayerStatisticsView(CompetitionScopedAPIView):
             season_id,
         )
         players = get_season_player_statistics(season, organization)
-        return Response(PlayerStatisticsSerializer(players, many=True).data)
+        return response_for_queryset(
+            players,
+            request,
+            PlayerStatisticsSerializer,
+            view=self,
+        )
 
 
 class SeasonTopScorersView(CompetitionScopedAPIView):
@@ -592,4 +673,9 @@ class SeasonTopScorersView(CompetitionScopedAPIView):
             season_id,
         )
         players = get_season_player_statistics(season, organization)[:10]
-        return Response(PlayerStatisticsSerializer(players, many=True).data)
+        return response_for_queryset(
+            players,
+            request,
+            PlayerStatisticsSerializer,
+            view=self,
+        )

@@ -43,7 +43,10 @@ class LoginView(APIView):
         )
         if user is None or not user.is_active:
             return Response(
-                {"detail": "Invalid email or password."},
+                {
+                    "detail": "Invalid email or password.",
+                    "code": "invalid_credentials",
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

@@ -9,6 +9,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.common.pagination import response_for_queryset
+from apps.common.query_params import apply_query_options
+
 from .models import Organization, OrganizationMembership
 from .permissions import (
     IsOrganizationAdmin,
@@ -64,7 +67,19 @@ class OrganizationListCreateView(APIView):
         organizations = Organization.objects.filter(
             memberships__user=request.user,
         ).annotate(current_user_role=F("memberships__role"))
-        return Response(OrganizationSerializer(organizations, many=True).data)
+        organizations = apply_query_options(
+            organizations,
+            request,
+            search_fields=("name", "slug"),
+            ordering_fields=("name", "slug", "created_at"),
+            default_ordering=("name", "id"),
+        )
+        return response_for_queryset(
+            organizations,
+            request,
+            OrganizationSerializer,
+            view=self,
+        )
 
     @extend_schema(
         request=OrganizationSerializer,
@@ -129,7 +144,19 @@ class MembershipListCreateView(OrganizationScopedMixin, APIView):
     def get(self, request, organization_id):
         organization = self.get_organization(request, organization_id)
         memberships = organization.memberships.select_related("user").all()
-        return Response(MembershipSerializer(memberships, many=True).data)
+        memberships = apply_query_options(
+            memberships,
+            request,
+            search_fields=("user__email", "role"),
+            ordering_fields=("role", "created_at"),
+            default_ordering=("user__email", "id"),
+        )
+        return response_for_queryset(
+            memberships,
+            request,
+            MembershipSerializer,
+            view=self,
+        )
 
     @extend_schema(
         request=MembershipCreateSerializer,
