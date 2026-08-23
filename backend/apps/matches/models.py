@@ -30,6 +30,9 @@ class Match(TimestampedModel):
 
     class Meta:
         ordering = ["fixture__round_number", "fixture__leg", "id"]
+        indexes = [
+            models.Index(fields=["status"], name="match_status_idx"),
+        ]
         constraints = [
             models.CheckConstraint(
                 condition=models.Q(
@@ -82,6 +85,9 @@ class MatchEvent(TimestampedModel):
 
     class Meta:
         ordering = ["minute", "id"]
+        indexes = [
+            models.Index(fields=["match", "event_type"], name="event_match_type_idx"),
+        ]
         constraints = [
             models.CheckConstraint(
                 condition=models.Q(minute__gte=1) & models.Q(minute__lte=180),

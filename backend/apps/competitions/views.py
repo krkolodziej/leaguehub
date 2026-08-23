@@ -26,7 +26,11 @@ from .serializers import (
     SeasonSerializer,
     SeasonTeamSerializer,
     TeamSerializer,
+    PlayerStatisticsSerializer,
+    StandingsSerializer,
 )
+from .services.player_statistics import get_season_player_statistics
+from .services.standings import get_season_standings
 
 
 class OrganizationAccessMixin:
@@ -551,3 +555,41 @@ class FixtureListGenerateView(CompetitionScopedAPIView):
             FixtureSerializer(fixtures, many=True).data,
             status=status.HTTP_201_CREATED,
         )
+
+
+class SeasonStandingsView(CompetitionScopedAPIView):
+    @extend_schema(responses=StandingsSerializer(many=True))
+    def get(self, request, organization_id, league_id, season_id):
+        _, _, season = self.get_season(
+            request,
+            organization_id,
+            league_id,
+            season_id,
+        )
+        return Response(StandingsSerializer(get_season_standings(season), many=True).data)
+
+
+class SeasonPlayerStatisticsView(CompetitionScopedAPIView):
+    @extend_schema(responses=PlayerStatisticsSerializer(many=True))
+    def get(self, request, organization_id, league_id, season_id):
+        organization, _, season = self.get_season(
+            request,
+            organization_id,
+            league_id,
+            season_id,
+        )
+        players = get_season_player_statistics(season, organization)
+        return Response(PlayerStatisticsSerializer(players, many=True).data)
+
+
+class SeasonTopScorersView(CompetitionScopedAPIView):
+    @extend_schema(responses=PlayerStatisticsSerializer(many=True))
+    def get(self, request, organization_id, league_id, season_id):
+        organization, _, season = self.get_season(
+            request,
+            organization_id,
+            league_id,
+            season_id,
+        )
+        players = get_season_player_statistics(season, organization)[:10]
+        return Response(PlayerStatisticsSerializer(players, many=True).data)
