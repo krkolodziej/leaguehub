@@ -1,12 +1,35 @@
+import { Navigate, Route, Routes } from 'react-router-dom'
+
+import { AppShell } from './components/AppShell'
+import { ProtectedRoute } from './components/ProtectedRoute'
+import { PublicOnlyRoute } from './components/PublicOnlyRoute'
+import { useCurrentUser } from './lib/auth'
+import { AuthLayout } from './pages/AuthLayout'
+import { DashboardPage } from './pages/DashboardPage'
+import { LoginPage } from './pages/LoginPage'
+import { RegisterPage } from './pages/RegisterPage'
 import './App.css'
 
 function App() {
+  const auth = useCurrentUser()
+
   return (
-    <main className="welcome-card">
-      <p className="eyebrow">Football league management</p>
-      <h1>LeagueHub</h1>
-      <p className="status">Development environment is ready.</p>
-    </main>
+    <Routes>
+      <Route element={<PublicOnlyRoute user={auth.data} isLoading={auth.isPending} />}>
+        <Route element={<AuthLayout />}>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+        </Route>
+      </Route>
+      <Route element={<ProtectedRoute user={auth.data} isLoading={auth.isPending} />}>
+        <Route element={<AppShell />}>
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/organizations/:organizationId" element={<DashboardPage />} />
+        </Route>
+      </Route>
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
   )
 }
 

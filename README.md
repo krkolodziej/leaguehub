@@ -106,6 +106,14 @@ where they are meaningful. Match collections also accept comma-separated
 status filters. Invalid query parameters and other API exceptions use a
 consistent `detail`, `code`, and (for validation) `fields` response shape.
 
+Stage 9 adds the React authentication foundation. The SPA uses React Router,
+TanStack Query, and a small fetch-based API client. Session cookies are sent
+with `credentials: include`; mutating requests first obtain the Django CSRF
+cookie and echo it in `X-CSRFToken`. The public routes are `/login` and
+`/register`; authenticated users are redirected to `/dashboard`, where their
+organizations are loaded from the API. Vite proxies `/api` to the local Django
+server during development.
+
 For a browser client, request `/api/v1/auth/csrf/` first, then send the
 `csrftoken` cookie value in the `X-CSRFToken` header for register, login, and
 logout. Cross-origin requests must include credentials; local origins are
