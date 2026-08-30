@@ -7,6 +7,7 @@ import { useCurrentUser } from './lib/auth'
 import { AuthLayout } from './pages/AuthLayout'
 import { DashboardPage } from './pages/DashboardPage'
 import { LoginPage } from './pages/LoginPage'
+import { OrganizationPage } from './pages/OrganizationPage'
 import { RegisterPage } from './pages/RegisterPage'
 import './App.css'
 
@@ -24,7 +25,7 @@ function App() {
       <Route element={<ProtectedRoute user={auth.data} isLoading={auth.isPending} />}>
         <Route element={<AppShell />}>
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/organizations/:organizationId" element={<DashboardPage />} />
+          <Route path="/organizations/:organizationId" element={<OrganizationPage />} />
         </Route>
       </Route>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />

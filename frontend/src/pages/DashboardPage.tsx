@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 
 import { ErrorState } from '../components/ErrorState'
 import { LoadingState } from '../components/LoadingState'
+import { OrganizationForm } from '../components/ManagementForms'
 import { useOrganizations } from '../lib/organizations'
 
 export function DashboardPage() {
@@ -13,6 +14,7 @@ export function DashboardPage() {
   return (
     <div className="dashboard-page">
       <div className="page-heading"><div><p className="eyebrow">Workspace</p><h1>Your organizations</h1><p className="muted">Everything you belong to, in one place.</p></div><span className="count-pill">{organizations.length} {organizations.length === 1 ? 'organization' : 'organizations'}</span></div>
+      <OrganizationForm />
       {organizations.length === 0 ? (
         <section className="empty-card"><div className="empty-icon">+</div><h2>No organizations yet</h2><p className="muted">Your organizations will appear here when you join or create one.</p></section>
       ) : (
