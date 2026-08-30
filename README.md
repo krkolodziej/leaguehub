@@ -114,6 +114,16 @@ cookie and echo it in `X-CSRFToken`. The public routes are `/login` and
 organizations are loaded from the API. Vite proxies `/api` to the local Django
 server during development.
 
+Stage 10 adds the league-management UI. From the dashboard, an authenticated
+user can create an organization and open it to view and manage leagues,
+seasons, teams, players, seasonal team assignments, and rosters. Manager-only
+forms use React Hook Form with Zod schemas for immediate client-side feedback;
+the API remains the source of truth and performs its own validation and
+authorization. TanStack Query owns server state, scopes cache keys by
+organization/league/season/team IDs, and invalidates the affected collection
+after each successful mutation. The page explicitly handles loading, error,
+and empty states for every collection.
+
 For a browser client, request `/api/v1/auth/csrf/` first, then send the
 `csrftoken` cookie value in the `X-CSRFToken` header for register, login, and
 logout. Cross-origin requests must include credentials; local origins are
