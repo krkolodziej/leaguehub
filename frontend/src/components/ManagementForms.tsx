@@ -4,6 +4,9 @@ import type { ReactNode } from 'react'
 import { z } from 'zod'
 
 import { errorMessage } from '../lib/errors'
+import { Button } from './ui/button'
+import { Input } from './ui/input'
+import { Label } from './ui/label'
 import {
   useAddRosterEntry,
   useAddSeasonTeam,
@@ -22,12 +25,20 @@ const rosterSchema = z.object({ player_id: z.number().positive(), shirt_number: 
 
 type FormProps = { organizationId: number; onSuccess?: () => void }
 
+const SELECT_CLASS =
+  'h-10 w-full rounded-[2px] border border-chalk bg-paper-raised px-3 text-base text-ink focus-visible:border-pitch'
+const NATIVE_LABEL_CLASS = 'grid gap-1.5 text-xs font-semibold tracking-wide text-ink-muted'
+
 function FieldError({ message }: { message?: string }) {
-  return message ? <span className="field-error">{message}</span> : null
+  return message ? <span className="text-xs font-medium text-ink">{message}</span> : null
 }
 
 function FormError({ error }: { error: unknown }) {
-  return error ? <div className="form-error" role="alert">{errorMessage(error)}</div> : null
+  return error ? (
+    <div className="mb-3 border-l-[3px] border-ink px-3 py-2 text-sm font-medium text-ink" role="alert">
+      {errorMessage(error)}
+    </div>
+  ) : null
 }
 
 export function OrganizationForm({ onSuccess }: { onSuccess?: () => void }) {
@@ -69,20 +80,38 @@ export function SeasonTeamForm({ organizationId, leagueId, seasonId, teams, onSu
   const mutation = useAddSeasonTeam(organizationId, leagueId, seasonId)
   const form = useForm<{ team_id: number }>({ resolver: zodResolver(z.object({ team_id: z.number().positive('Choose a team.') })), defaultValues: { team_id: 0 } })
   const submit = (values: { team_id: number }) => mutation.mutate(values.team_id, { onSuccess: () => { form.reset(); onSuccess?.() } })
-  return <FormCard title="Add team to season" form={form} onSubmit={submit} pending={mutation.isPending} error={mutation.error} submitLabel="Add to season"><label>Team<select {...form.register('team_id', { valueAsNumber: true })}><option value={0}>Choose a team…</option>{teams.map((team) => <option key={team.id} value={team.id}>{team.name}</option>)}</select><FieldError message={form.formState.errors.team_id?.message} /></label></FormCard>
+  return <FormCard title="Add team to season" form={form} onSubmit={submit} pending={mutation.isPending} error={mutation.error} submitLabel="Add to season"><label className={NATIVE_LABEL_CLASS}>Team<select className={SELECT_CLASS} {...form.register('team_id', { valueAsNumber: true })}><option value={0}>Choose a team…</option>{teams.map((team) => <option key={team.id} value={team.id}>{team.name}</option>)}</select><FieldError message={form.formState.errors.team_id?.message} /></label></FormCard>
 }
 
 export function RosterForm({ organizationId, leagueId, seasonId, seasonTeamId, players, onSuccess }: FormProps & { leagueId: number; seasonId: number; seasonTeamId: number; players: { id: number; full_name: string }[] }) {
   const mutation = useAddRosterEntry(organizationId, leagueId, seasonId, seasonTeamId)
   const form = useForm<z.infer<typeof rosterSchema>>({ resolver: zodResolver(rosterSchema), defaultValues: { player_id: 0, shirt_number: undefined, position: '', is_captain: false } })
   const submit = (values: z.infer<typeof rosterSchema>) => mutation.mutate(values, { onSuccess: () => { form.reset(); onSuccess?.() } })
-  return <FormCard title="Add roster player" form={form} onSubmit={submit} pending={mutation.isPending} error={mutation.error} submitLabel="Add player"><label>Player<select {...form.register('player_id', { valueAsNumber: true })}><option value={0}>Choose a player…</option>{players.map((player) => <option key={player.id} value={player.id}>{player.full_name}</option>)}</select><FieldError message={form.formState.errors.player_id?.message} /></label><TextInput label="Shirt number" type="number" registration={form.register('shirt_number', { setValueAs: (value) => value === '' ? undefined : Number(value) })} error={form.formState.errors.shirt_number?.message} /><TextInput label="Position" registration={form.register('position')} error={form.formState.errors.position?.message} /><label className="checkbox-label"><input type="checkbox" {...form.register('is_captain')} /> Captain</label></FormCard>
+  return <FormCard title="Add roster player" form={form} onSubmit={submit} pending={mutation.isPending} error={mutation.error} submitLabel="Add player"><label className={NATIVE_LABEL_CLASS}>Player<select className={SELECT_CLASS} {...form.register('player_id', { valueAsNumber: true })}><option value={0}>Choose a player…</option>{players.map((player) => <option key={player.id} value={player.id}>{player.full_name}</option>)}</select><FieldError message={form.formState.errors.player_id?.message} /></label><TextInput label="Shirt number" type="number" registration={form.register('shirt_number', { setValueAs: (value) => value === '' ? undefined : Number(value) })} error={form.formState.errors.shirt_number?.message} /><TextInput label="Position" registration={form.register('position')} error={form.formState.errors.position?.message} /><label className="flex items-center gap-2 self-end pb-2 text-xs font-semibold tracking-wide text-ink-muted"><input className="size-4 accent-[var(--color-pitch)]" type="checkbox" {...form.register('is_captain')} /> Captain</label></FormCard>
 }
 
 function TextInput({ label, type = 'text', hint, registration, error }: { label: string; type?: string; hint?: string; registration: UseFormRegisterReturn; error?: string }) {
-  return <label>{label}{hint && <span className="field-hint">{hint}</span>}<input type={type} {...registration} /><FieldError message={error} /></label>
+  return (
+    <div className="grid gap-1.5">
+      <Label htmlFor={registration.name}>{label}</Label>
+      {hint && <span className="text-xs text-ink-muted">{hint}</span>}
+      <Input id={registration.name} type={type} aria-invalid={error ? true : undefined} {...registration} />
+      <FieldError message={error} />
+    </div>
+  )
 }
 
 function FormCard<T extends FieldValues>({ title, form, onSubmit, pending, error, submitLabel, children }: { title: string; form: UseFormReturn<T>; onSubmit: SubmitHandler<T>; pending: boolean; error: unknown; submitLabel: string; children: ReactNode }) {
-  return <section className="form-card"><h3>{title}</h3><FormError error={error} /><form className="form-stack compact" onSubmit={form.handleSubmit(onSubmit)}>{children}<button className="button button-primary" type="submit" disabled={pending}>{pending ? 'Saving…' : submitLabel}</button></form></section>
+  return (
+    <section className="mt-4 border border-chalk bg-paper-raised p-4">
+      <h3 className="mb-3 font-condensed text-sm font-semibold uppercase tracking-[0.08em] text-ink-muted">{title}</h3>
+      <FormError error={error} />
+      <form className="grid gap-3 sm:grid-cols-2" onSubmit={form.handleSubmit(onSubmit)}>
+        {children}
+        <Button className="justify-self-start sm:col-span-2" size="sm" type="submit" disabled={pending}>
+          {pending ? 'Saving…' : submitLabel}
+        </Button>
+      </form>
+    </section>
+  )
 }
