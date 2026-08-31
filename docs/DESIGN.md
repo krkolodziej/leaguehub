@@ -11,14 +11,17 @@ Six values. Everything else is a tint of these.
 
 | Token | Hex | Role |
 | --- | --- | --- |
-| `paper` | `#F3F4F1` | Page ground. A cool grey-green newsprint, not a warm cream. |
-| `ink` | `#16191B` | Body text, headings, table rules. Never a page background. |
+| `paper` | `#ECEEE9` | Page ground. A cool grey-green newsprint, not a warm cream. |
+| `ink` | `#14171A` | Body text, headings, table rules. Never a page background. |
 | `pitch` | `#0B6E4F` | Structure and action: table headers, links, primary buttons, the promotion rule. |
-| `chalk` | `#D7DAD5` | Hairlines, column dividers, input borders. |
+| `chalk` | `#CBD1C9` | Hairlines, column dividers, input borders. |
 | `booking` | `#E8B411` | **Yellow card only.** |
 | `sending-off` | `#B3261E` | **Red card only.** |
 
-`ink` at 65% gives the secondary text tone (`#5A6167` against paper) used for meta lines.
+`ink` at 70% gives the secondary text tone (`#4F565C` against paper) used for meta
+lines. The ground sits a clear step below the white panel surface on purpose: an
+earlier pass put near-white panels on a near-white ground, and the separation was
+so slight that the page read as unstyled rather than as calm.
 
 The two signal colours are spent entirely on their sport meaning. A yellow chip in this
 interface is a caution and nothing else; a red chip is a dismissal and nothing else. This
@@ -30,8 +33,9 @@ has consequences the rest of the UI has to absorb:
   small pulsing disc. Motion is the signal, so the treatment survives both colour
   blindness and `prefers-reduced-motion` (where it falls back to a filled ring).
 
-Contrast, measured against `paper`: `ink` 15.9:1, `pitch` 5.7:1, `sending-off` 5.9:1,
-secondary ink 5.7:1. White on `pitch` is 6.3:1. All pass AA for body text.
+Contrast, measured in the running app against `paper`: headings 15.4:1, secondary
+ink 6.4:1 (7.5:1 on a white panel), `pitch` 5.4:1. White on `pitch` is 6.3:1. All
+pass AA for body text.
 
 No dark mode.
 
@@ -39,6 +43,11 @@ No dark mode.
 
 Two families, both with true tabular lining figures — mandatory, because half this
 product is numeric columns that must align.
+
+Both are **self-hosted** through `@fontsource`, restricted to the `latin` and
+`latin-ext` subsets. A font CDN was used first, but the entire typographic case
+collapses to a system fallback the moment that request is slow or blocked, and
+`latin-ext` is not optional when half the club names carry Polish diacritics.
 
 - **IBM Plex Sans** — interface text, forms, prose. A slightly bureaucratic grotesque
   that suits league administration.
@@ -50,16 +59,20 @@ product is numeric columns that must align.
 
 | Step | Size | Role |
 | --- | --- | --- |
-| `2xs` | 11px | Table column heads, form-guide marks |
-| `xs` | 12px | Meta lines, captions |
-| `sm` | 13px | Dense table cells, secondary UI |
-| `base` | 15px | Body |
-| `lg` | 18px | Section titles |
-| `xl` | 24px | Page titles |
-| `2xl` | 32px | Match card scores |
-| `score` | 56px | Match detail scoreline |
+| `2xs` | 12px | Table column heads, form-guide marks |
+| `xs` | 13px | Meta lines, captions |
+| `sm` | 14px | Dense table cells, secondary UI |
+| `base` | 16px | Body |
+| `lg` | 20px | Section titles |
+| `xl` | 30px | Page titles |
+| `2xl` | 36px | Match card scores |
+| `score` | 64px | Match detail scoreline |
 
-Headings are set in condensed, tight (`-0.02em`), and are **not** all-caps with letter
+The first pass set every step two sizes smaller and headings at 600. On a real
+screen that read as timid rather than as dense, so the whole scale moved up and
+headings went to 700.
+
+Headings are set in condensed at 700, tight (`-0.015em`), and are **not** all-caps with letter
 spacing. Column heads in tables are the one place small caps appear, because printed
 tables actually do that.
 

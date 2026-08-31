@@ -6,28 +6,30 @@
  * yellow and red cards.
  */
 @theme {
-  --color-paper: #f3f4f1;
+  /* The ground is a shade deeper than the panels so a panel reads as a panel;
+     at near-white on near-white the page just looked unstyled. */
+  --color-paper: #eceee9;
   --color-paper-raised: #ffffff;
-  --color-ink: #16191b;
-  --color-ink-muted: #5a6167;
+  --color-ink: #14171a;
+  --color-ink-muted: #4f565c;
   --color-pitch: #0b6e4f;
   --color-pitch-dark: #08543c;
-  --color-pitch-wash: #e6efea;
-  --color-chalk: #d7dad5;
+  --color-pitch-wash: #e3ede7;
+  --color-chalk: #cbd1c9;
   --color-booking: #e8b411;
   --color-sending-off: #b3261e;
 
   --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-condensed: 'IBM Plex Sans Condensed', 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
 
-  --text-2xs: 0.6875rem;
-  --text-xs: 0.75rem;
-  --text-sm: 0.8125rem;
-  --text-base: 0.9375rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.5rem;
-  --text-2xl: 2rem;
-  --text-score: 3.5rem;
+  --text-2xs: 0.75rem;
+  --text-xs: 0.8125rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.875rem;
+  --text-2xl: 2.25rem;
+  --text-score: 4rem;
 
   --radius-card: 0.25rem;
 }
@@ -58,8 +60,9 @@
   h2,
   h3 {
     font-family: var(--font-condensed);
-    font-weight: 600;
-    letter-spacing: -0.02em;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1.1;
     text-wrap: balance;
   }
 
