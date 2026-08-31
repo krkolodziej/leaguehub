@@ -1,14 +1,76 @@
-import { useState } from 'react'
+import { Bell } from 'lucide-react'
 
 import { useMarkNotificationRead, useNotifications } from '../lib/notifications'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu'
 
 export function NotificationsMenu() {
-  const [open, setOpen] = useState(false)
   const notifications = useNotifications()
   const markRead = useMarkNotificationRead()
   const unreadCount = notifications.data?.filter((item) => !item.read_at).length ?? 0
 
-  return <div className="notifications-menu"><button className="button button-ghost notification-button" onClick={() => setOpen((value) => !value)} aria-expanded={open}>Notifications{unreadCount > 0 && <span className="notification-count">{unreadCount}</span>}</button>{open && <div className="notification-popover"><div className="notification-header"><strong>Notifications</strong>{unreadCount > 0 && <span className="muted">{unreadCount} unread</span>}</div>{notifications.isPending ? <p className="muted">Loading notifications…</p> : notifications.isError ? <p className="error-message">Could not load notifications.</p> : notifications.data.length === 0 ? <p className="muted">No notifications yet.</p> : <div className="notification-list">{notifications.data.slice(0, 10).map((item) => <button className={item.read_at ? 'notification-item read' : 'notification-item'} key={item.id} onClick={() => { if (!item.read_at) markRead.mutate(item.id) }}><strong>{item.title}</strong><span>{item.message}</span><small>{formatNotificationDate(item.created_at)}</small></button>)}</div>}</div>}</div>
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        className="relative grid size-9 place-items-center rounded-[2px] text-ink-muted hover:bg-ink/5 hover:text-ink"
+        aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
+      >
+        <Bell className="size-[18px]" aria-hidden="true" />
+        {unreadCount > 0 && (
+          <span className="absolute right-1 top-1 grid min-w-4 place-items-center rounded-full bg-pitch px-1 font-condensed text-[0.625rem] font-bold leading-4 text-white">
+            {unreadCount}
+          </span>
+        )}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuLabel>
+          Notifications
+          {unreadCount > 0 && <span className="font-normal normal-case tracking-normal text-ink-muted">{unreadCount} unread</span>}
+        </DropdownMenuLabel>
+        {notifications.isPending ? (
+          <p className="px-4 py-6 text-center text-sm text-ink-muted">Loading notifications…</p>
+        ) : notifications.isError ? (
+          <p className="border-l-[3px] border-ink px-4 py-4 text-sm text-ink">
+            Could not load notifications. Reopen this menu to try again.
+          </p>
+        ) : notifications.data.length === 0 ? (
+          <p className="px-4 py-6 text-center text-sm text-ink-muted">
+            Nothing yet. Finished matches and upcoming kick-offs will land here.
+          </p>
+        ) : (
+          <div className="max-h-80 overflow-y-auto">
+            {notifications.data.slice(0, 10).map((item) => (
+              <DropdownMenuItem
+                key={item.id}
+                onSelect={(event) => {
+                  event.preventDefault()
+                  if (!item.read_at) markRead.mutate(item.id)
+                }}
+              >
+                <span className="flex items-baseline gap-2">
+                  {!item.read_at && (
+                    <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-pitch" aria-hidden="true" />
+                  )}
+                  <span className="font-condensed text-sm font-semibold text-ink">{item.title}</span>
+                </span>
+                <span className="mt-0.5 block text-sm text-ink-muted">{item.message}</span>
+                <span className="mt-1 block text-2xs uppercase tracking-[0.08em] text-ink-muted">
+                  {formatNotificationDate(item.created_at)}
+                </span>
+              </DropdownMenuItem>
+            ))}
+          </div>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
 }
 
-function formatNotificationDate(value: string) { return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(value)) }
+function formatNotificationDate(value: string) {
+  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(value))
+}

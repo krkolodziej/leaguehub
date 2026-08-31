@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { FormField } from '../components/FormField'
+import { Button } from '../components/ui/button'
 import { getDemoAccount } from '../lib/demo'
 import { errorMessage, fieldErrors } from '../lib/errors'
 import { useLogin } from '../lib/auth'
@@ -39,10 +40,14 @@ export function LoginPage() {
 
   return (
     <>
-      <h1>Sign in to LeagueHub</h1>
-      <p className="muted">Manage your leagues, fixtures and results.</p>
-      {formError && <div className="form-error" role="alert">{formError}</div>}
-      <form className="form-stack" onSubmit={handleSubmit}>
+      <h1 className="mt-6 text-xl">Sign in to LeagueHub</h1>
+      <p className="mt-1 text-sm text-ink-muted">Manage your leagues, fixtures and results.</p>
+      {formError && (
+        <p className="mt-4 border-l-[3px] border-ink px-3 py-2 text-sm font-medium text-ink" role="alert">
+          {formError}
+        </p>
+      )}
+      <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
         <FormField
           id="email"
           label="Email"
@@ -64,31 +69,42 @@ export function LoginPage() {
           required
           autoComplete="current-password"
         />
-        <button className="button button-primary button-wide" disabled={loginMutation.isPending} type="submit">
+        <Button className="mt-1 w-full" size="lg" disabled={loginMutation.isPending} type="submit">
           {loginMutation.isPending ? 'Signing in…' : 'Sign in'}
-        </button>
+        </Button>
       </form>
       {demo && (
-        <section className="demo-panel" aria-labelledby="demo-heading">
-          <h2 id="demo-heading">Just looking around?</h2>
-          <p>Sign in to a populated league with the shared demo account.</p>
-          <dl className="demo-credentials">
-            <dt>Email</dt>
-            <dd>{demo.email}</dd>
-            <dt>Password</dt>
-            <dd>{demo.password}</dd>
+        <section className="mt-7 border-t border-chalk pt-5" aria-labelledby="demo-heading">
+          <h2 id="demo-heading" className="text-base">
+            Just looking around?
+          </h2>
+          <p className="mt-1 text-sm text-ink-muted">
+            Sign in to a populated league with the shared demo account.
+          </p>
+          <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 border border-chalk bg-paper px-3 py-2 text-sm">
+            <dt className="text-ink-muted">Email</dt>
+            <dd className="m-0 select-all font-condensed font-semibold">{demo.email}</dd>
+            <dt className="text-ink-muted">Password</dt>
+            <dd className="m-0 select-all font-condensed font-semibold">{demo.password}</dd>
           </dl>
-          <button
-            className="button button-secondary button-wide"
+          <Button
+            className="mt-3 w-full"
+            variant="outline"
+            size="lg"
             disabled={loginMutation.isPending}
             onClick={handleDemoSignIn}
             type="button"
           >
             Sign in to the demo
-          </button>
+          </Button>
         </section>
       )}
-      <p className="auth-switch">New to LeagueHub? <Link to="/register">Create an account</Link></p>
+      <p className="mt-6 text-center text-sm text-ink-muted">
+        New to LeagueHub?{' '}
+        <Link className="font-semibold text-pitch underline-offset-4 hover:underline" to="/register">
+          Create an account
+        </Link>
+      </p>
     </>
   )
 }

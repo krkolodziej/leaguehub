@@ -10,7 +10,6 @@ import { LoginPage } from './pages/LoginPage'
 import { OrganizationPage } from './pages/OrganizationPage'
 import { LeagueDashboardPage, MatchPage } from './pages/LeagueDashboardPage'
 import { RegisterPage } from './pages/RegisterPage'
-import './App.css'
 
 function App() {
   const auth = useCurrentUser()

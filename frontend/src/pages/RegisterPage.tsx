@@ -2,6 +2,7 @@ import { useState, type ChangeEvent, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { FormField } from '../components/FormField'
+import { Button } from '../components/ui/button'
 import { errorMessage, fieldErrors } from '../lib/errors'
 import { useRegister } from '../lib/auth'
 
@@ -24,11 +25,15 @@ export function RegisterPage() {
 
   return (
     <>
-      <h1>Create your account</h1>
-      <p className="muted">Set up a workspace for your league.</p>
-      {formError && <div className="form-error" role="alert">{formError}</div>}
-      <form className="form-stack" onSubmit={handleSubmit}>
-        <div className="form-row">
+      <h1 className="mt-6 text-xl">Create your account</h1>
+      <p className="mt-1 text-sm text-ink-muted">Set up a workspace for your league.</p>
+      {formError && (
+        <p className="mt-4 border-l-[3px] border-ink px-3 py-2 text-sm font-medium text-ink" role="alert">
+          {formError}
+        </p>
+      )}
+      <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
+        <div className="grid gap-4 sm:grid-cols-2">
           <FormField
             id="first-name"
             label="First name"
@@ -80,11 +85,16 @@ export function RegisterPage() {
           minLength={8}
           autoComplete="new-password"
         />
-        <button className="button button-primary button-wide" disabled={registerMutation.isPending} type="submit">
+        <Button className="mt-1 w-full" size="lg" disabled={registerMutation.isPending} type="submit">
           {registerMutation.isPending ? 'Creating account…' : 'Create account'}
-        </button>
+        </Button>
       </form>
-      <p className="auth-switch">Already have an account? <Link to="/login">Sign in</Link></p>
+      <p className="mt-6 text-center text-sm text-ink-muted">
+        Already have an account?{' '}
+        <Link className="font-semibold text-pitch underline-offset-4 hover:underline" to="/login">
+          Sign in
+        </Link>
+      </p>
     </>
   )
 }
