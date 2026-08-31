@@ -26,7 +26,6 @@ export function FormGuide({ form, className }: { form: FormResult[]; className?:
           {result}
         </span>
       ))}
-      <span className="sr-only">{form.map((result) => LABEL[result]).join(', ')}</span>
     </span>
   )
 }

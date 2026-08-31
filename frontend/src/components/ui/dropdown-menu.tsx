@@ -51,7 +51,7 @@ export function DropdownMenuLabel({
     <DropdownMenuPrimitive.Label
       className={cn(
         'flex items-baseline justify-between border-b border-ink bg-paper px-4 py-2',
-        'font-condensed text-2xs font-semibold uppercase tracking-[0.08em] text-ink',
+        'font-condensed text-sm font-semibold text-ink',
         className,
       )}
       {...props}

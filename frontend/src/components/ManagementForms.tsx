@@ -104,7 +104,7 @@ function TextInput({ label, type = 'text', hint, registration, error }: { label:
 function FormCard<T extends FieldValues>({ title, form, onSubmit, pending, error, submitLabel, children }: { title: string; form: UseFormReturn<T>; onSubmit: SubmitHandler<T>; pending: boolean; error: unknown; submitLabel: string; children: ReactNode }) {
   return (
     <section className="mt-4 border border-chalk bg-paper-raised p-4">
-      <h3 className="mb-3 font-condensed text-sm font-semibold uppercase tracking-[0.08em] text-ink-muted">{title}</h3>
+      <h3 className="mb-3 font-condensed text-base font-semibold text-ink">{title}</h3>
       <FormError error={error} />
       <form className="grid gap-3 sm:grid-cols-2" onSubmit={form.handleSubmit(onSubmit)}>
         {children}
