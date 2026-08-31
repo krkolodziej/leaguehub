@@ -49,6 +49,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -114,6 +115,16 @@ DATABASES = {
     }
 }
 
+# Managed Postgres hands out a single connection string. When one is present it
+# wins over the discrete POSTGRES_* variables used by Compose.
+if os.getenv("DATABASE_URL"):
+    import dj_database_url
+
+    DATABASES["default"] = dj_database_url.config(
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": (
@@ -138,6 +149,7 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "static/"
+SPA_ROOT = os.getenv("SPA_ROOT") or None
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "accounts.User"
 

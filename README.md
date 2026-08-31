@@ -195,6 +195,80 @@ hosts/origins, and enable secure cookies/HSTS by default. The checked-in local
 example disables TLS-only flags because it intentionally serves plain HTTP;
 set them to `true` behind HTTPS.
 
+## Deploying
+
+The deployment target is [Railway](https://railway.com), configured in
+[`railway.json`](railway.json). One service builds the root
+[`Dockerfile`](Dockerfile), which compiles the SPA and then serves it and the
+API from the same origin under gunicorn with a uvicorn worker class. Static
+files go through WhiteNoise; the ASGI worker keeps the live-match WebSocket
+working.
+
+Serving both halves from one origin is deliberate. Split across two
+`*.up.railway.app` subdomains they would be cross-site, because that suffix is
+on the Public Suffix List, and the `SameSite=Lax` session cookie would never be
+sent with an API call.
+
+### First deploy
+
+```bash
+npm install --global @railway/cli
+railway login
+railway init
+railway add --database postgres
+```
+
+Set the variables from the table below on the service (`railway variables --set
+'KEY=value'`, or the dashboard), referencing the database as
+`${{Postgres.DATABASE_URL}}`, then:
+
+```bash
+railway up
+```
+
+`railway.json` runs `migrate` followed by `seed_demo` as the pre-deploy command,
+so a fresh database arrives populated. `seed_demo` is idempotent, so it is a
+no-op on every later deploy; use `railway run python manage.py seed_demo --flush`
+to rebuild the dataset deliberately.
+
+Finally, add the generated domain to `DJANGO_ALLOWED_HOSTS` and
+`DJANGO_CSRF_TRUSTED_ORIGINS` and redeploy — Railway only mints the hostname
+once the service exists.
+
+### Production environment
+
+| Variable | Required | Value |
+| --- | --- | --- |
+| `DJANGO_SETTINGS_MODULE` | baked into the image | `config.settings.production` |
+| `DJANGO_SECRET_KEY` | **yes** | A long random string. The process refuses to start without it. |
+| `DJANGO_ALLOWED_HOSTS` | **yes** | Public hostname, no scheme: `myapp.up.railway.app` |
+| `DJANGO_CSRF_TRUSTED_ORIGINS` | **yes** | Public origin, with scheme: `https://myapp.up.railway.app` |
+| `DATABASE_URL` | **yes** | `${{Postgres.DATABASE_URL}}`. Overrides every `POSTGRES_*` value. |
+| `PORT` | injected | Supplied by the platform; the image binds it. |
+| `SPA_ROOT` | baked into the image | `/app/spa`. Unset it and Django serves the API only. |
+| `DJANGO_CORS_ALLOWED_ORIGINS` | no | Leave empty. Only needed if the SPA is hosted elsewhere. |
+| `DJANGO_SECURE_SSL_REDIRECT` | no | Defaults to `true`. Only set `false` without TLS. |
+| `DJANGO_SESSION_COOKIE_SECURE` | no | Defaults to `true`. |
+| `DJANGO_CSRF_COOKIE_SECURE` | no | Defaults to `true`. |
+| `DJANGO_HSTS_SECONDS` | no | Defaults to one year. |
+| `REDIS_URL` | no | Absent: live updates are fanned out in-process and notification tasks run inline. |
+| `WEB_CONCURRENCY` | no | Defaults to `1`. Raise it **only** alongside `REDIS_URL`. |
+| `DJANGO_LOG_LEVEL` | no | Defaults to `INFO`. |
+| `VITE_DEMO_EMAIL` / `VITE_DEMO_PASSWORD` | build time | Credentials behind the one-click demo button; build with an empty email to hide it. |
+
+The image trusts `X-Forwarded-Proto` for HTTPS detection, so the SSL redirect and
+the `Secure` cookie flags behave correctly behind the platform's TLS proxy.
+
+### Running the production image locally
+
+```bash
+docker build -t leaguehub .
+docker run --rm -p 8088:8000   -e DJANGO_SECRET_KEY=local-only   -e DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1   -e DJANGO_CSRF_TRUSTED_ORIGINS=http://localhost:8088   -e DATABASE_URL=postgresql://leaguehub:leaguehub-local@host.docker.internal:5432/leaguehub   -e DJANGO_SECURE_SSL_REDIRECT=false   leaguehub
+```
+
+Run `python manage.py migrate && python manage.py seed_demo` in the container
+first; the pre-deploy hook only runs on the platform.
+
 ## Architecture and domain model
 
 ```mermaid

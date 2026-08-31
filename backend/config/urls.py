@@ -1,8 +1,11 @@
 """URL configuration for the LeagueHub backend."""
 
+from django.conf import settings
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+
+from apps.common.views import SpaIndexView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -19,3 +22,14 @@ urlpatterns = [
         name="swagger-ui",
     ),
 ]
+
+# Only when a compiled SPA is bundled alongside the API. Everything Django owns
+# is excluded, so the catch-all can never shadow an endpoint or the admin.
+if settings.SPA_ROOT:
+    urlpatterns += [
+        re_path(
+            r"^(?!api/|admin/|static/|media/|ws/).*$",
+            SpaIndexView.as_view(),
+            name="spa-index",
+        ),
+    ]

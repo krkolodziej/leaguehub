@@ -29,6 +29,31 @@ STATIC_ROOT = BASE_DIR / "staticfiles"  # noqa: F405
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"  # noqa: F405
 
+# WhiteNoise serves Django's own static files (admin, DRF, the schema UI) and,
+# when SPA_ROOT is set, the compiled single-page app from the site root. Serving
+# both from one origin is deliberate: it keeps the session and CSRF cookies
+# first-party, which a split frontend/backend host on *.up.railway.app cannot do
+# because that suffix makes the two subdomains cross-site.
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+WHITENOISE_ROOT = SPA_ROOT  # noqa: F405
+# index.html must never be cached, or a deploy leaves clients on a stale bundle
+# whose hashed asset URLs no longer exist.
+WHITENOISE_INDEX_FILE = True
+WHITENOISE_MAX_AGE = 31536000
+WHITENOISE_SKIP_COMPRESS_EXTENSIONS = ["woff", "woff2", "gz", "br", "png", "jpg", "svg"]
+
+# Without a Redis service there is nowhere to fan match updates out to, and no
+# worker to run notifications. A single instance can do both in-process.
+if not os.getenv("REDIS_URL"):
+    CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
+    CELERY_TASK_ALWAYS_EAGER = True
+    CELERY_TASK_EAGER_PROPAGATES = False
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
