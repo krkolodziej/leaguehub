@@ -3,9 +3,12 @@ from django.core.management import call_command
 
 from apps.competitions.management.commands.seed_demo import (
     DEMO_USERS,
+    LEGACY_ORGANIZATION_SLUGS,
+    LEGACY_USER_EMAILS,
     ORGANIZATION_SLUG,
     TEAM_SPECS,
 )
+from apps.accounts.models import User
 from apps.competitions.models import (
     Fixture,
     League,
@@ -97,6 +100,21 @@ def test_flush_rebuilds_the_dataset_without_duplicating_it():
     call_command("seed_demo", "--flush", verbosity=0)
 
     assert _counts() == before
+
+
+@pytest.mark.django_db
+def test_flush_also_clears_data_left_by_the_previous_seed_command():
+    owner = User.objects.create_user(LEGACY_USER_EMAILS[0], "irrelevant")
+    legacy = Organization.objects.create(
+        name="Demo League", slug=LEGACY_ORGANIZATION_SLUGS[0], created_by=owner
+    )
+    League.objects.create(organization=legacy, name="Demo Division", slug="demo-division")
+
+    call_command("seed_demo", "--flush", verbosity=0)
+
+    assert not Organization.objects.filter(slug=LEGACY_ORGANIZATION_SLUGS[0]).exists()
+    assert not User.objects.filter(email=LEGACY_USER_EMAILS[0]).exists()
+    assert Organization.objects.filter(slug=ORGANIZATION_SLUG).exists()
 
 
 @pytest.mark.django_db

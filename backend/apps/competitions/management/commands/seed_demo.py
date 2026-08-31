@@ -43,6 +43,12 @@ LEAGUE_DESCRIPTION = (
 
 DEMO_PASSWORD = "demo1234"
 
+# An earlier version of this command seeded a different organization and user.
+# Databases that ran it keep both sets side by side, and signing in with the old
+# account shows an all-but-empty league, so --flush clears those records too.
+LEGACY_ORGANIZATION_SLUGS = ("demo-league",)
+LEGACY_USER_EMAILS = ("demo@example.com",)
+
 
 @dataclass(frozen=True)
 class UserSpec:
@@ -242,8 +248,10 @@ class Command(BaseCommand):
         self._report(organization, owner, league, season)
 
     def _flush(self):
-        organization = Organization.objects.filter(slug=ORGANIZATION_SLUG).first()
-        if organization is not None:
+        for slug in (ORGANIZATION_SLUG, *LEGACY_ORGANIZATION_SLUGS):
+            organization = Organization.objects.filter(slug=slug).first()
+            if organization is None:
+                continue
             # Matches go first so their events release the PROTECT references
             # they hold on teams and players.
             Match.objects.filter(
@@ -251,7 +259,8 @@ class Command(BaseCommand):
             ).delete()
             organization.delete()
         # Notifications cascade with their user.
-        User.objects.filter(email__in=[spec.email for spec in DEMO_USERS]).delete()
+        emails = [spec.email for spec in DEMO_USERS] + list(LEGACY_USER_EMAILS)
+        User.objects.filter(email__in=emails).delete()
 
     def _create_organization(self):
         users = [
