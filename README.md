@@ -186,8 +186,14 @@ uv run python manage.py makemigrations --check --dry-run
 
 cd ../frontend
 pnpm lint
+pnpm test
+pnpm e2e
 pnpm build
 ```
+
+GitHub Actions runs the backend checks, frontend lint/typecheck/unit tests and
+production build, plus the Playwright smoke test on every push and pull
+request to `main`.
 
 ## Repository layout
 
