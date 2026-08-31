@@ -41,7 +41,17 @@ export function useRegister() {
 export function useLogout() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: logout,
+    mutationFn: async () => {
+      try {
+        await logout()
+      } catch (error) {
+        // A session the server has already dropped means the work is done.
+        // Without this the button silently does nothing and the viewer is
+        // stranded on a page they are no longer authenticated for.
+        if (error instanceof ApiError && error.status === 401) return
+        throw error
+      }
+    },
     onSuccess: () => {
       queryClient.setQueryData(authQueryKey, null)
       queryClient.removeQueries({ queryKey: ['organizations'] })

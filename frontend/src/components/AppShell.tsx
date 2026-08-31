@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 
 import { useCurrentUser, useLogout } from '../lib/auth'
+import { errorMessage } from '../lib/errors'
 import { cn } from '../lib/utils'
 import { Brand } from './Brand'
 import { NotificationsMenu } from './NotificationsMenu'
@@ -50,6 +51,14 @@ export function AppShell() {
             </Button>
           </div>
         </div>
+        {logoutMutation.isError && (
+          <p
+            className="border-t border-ink bg-paper px-4 py-2 text-sm font-medium text-ink sm:px-6"
+            role="alert"
+          >
+            Could not sign out: {errorMessage(logoutMutation.error)}
+          </p>
+        )}
       </header>
       <main id="main" className="mx-auto max-w-[1120px] px-4 py-6 sm:px-6 sm:py-8">
         <Outlet />
