@@ -246,6 +246,10 @@ It creates three accounts, one per role, all with the password `demo1234`:
 | `admin@leaguehub.app` | Admin |
 | `member@leaguehub.app` | Member |
 
+The sign-in screen offers the owner account behind a single button. The
+frontend reads it from `VITE_DEMO_EMAIL` and `VITE_DEMO_PASSWORD`; build with
+an empty `VITE_DEMO_EMAIL` to hide that block entirely.
+
 Stop the infrastructure when finished:
 
 ```bash
