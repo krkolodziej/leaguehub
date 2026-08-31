@@ -86,6 +86,10 @@ export type Team = { id: number; organization_id: number; name: string; slug: st
 export type Player = { id: number; organization_id: number; first_name: string; last_name: string; full_name: string }
 export type SeasonTeam = { id: number; season_id: number; team_id: number; team_name: string }
 export type RosterEntry = { id: number; season_team_id: number; player_id: number; player_name: string; shirt_number: number | null; position: string; is_captain: boolean }
+export type Fixture = { id: number; season_id: number; round_number: number; leg: number; home_team_id: number; home_team_name: string; away_team_id: number; away_team_name: string; scheduled_at: string | null }
+export type Match = { id: number; fixture_id: number; season_id: number; home_team_id: number; home_team_name: string; away_team_id: number; away_team_name: string; status: string; home_score: number; away_score: number; started_at: string | null; finished_at: string | null }
+export type Standing = { team_id: number; team_name: string; mp: number; wins: number; draws: number; losses: number; gf: number; ga: number; gd: number; pts: number }
+export type PlayerStatistic = { id: number; full_name: string; goals: number; yellow_cards: number; red_cards: number }
 
 export type Paginated<T> = {
   count: number
@@ -142,3 +146,16 @@ export const getRoster = (organizationId: number, leagueId: number, seasonId: nu
   list<RosterEntry>(`/organizations/${organizationId}/leagues/${leagueId}/seasons/${seasonId}/teams/${seasonTeamId}/roster/`)
 export const addRosterEntry = (organizationId: number, leagueId: number, seasonId: number, seasonTeamId: number, body: { player_id: number; shirt_number?: number; position?: string; is_captain?: boolean }) =>
   apiRequest<RosterEntry>(`/organizations/${organizationId}/leagues/${leagueId}/seasons/${seasonId}/teams/${seasonTeamId}/roster/`, { method: 'POST', body })
+
+export const getFixtures = (organizationId: number, leagueId: number, seasonId: number) =>
+  list<Fixture>(`/organizations/${organizationId}/leagues/${leagueId}/seasons/${seasonId}/fixtures/`)
+export const getMatches = (organizationId: number, leagueId: number, seasonId: number) =>
+  list<Match>(`/organizations/${organizationId}/leagues/${leagueId}/seasons/${seasonId}/matches/`)
+export const getMatch = (organizationId: number, leagueId: number, seasonId: number, matchId: number) =>
+  apiRequest<Match>(`/organizations/${organizationId}/leagues/${leagueId}/seasons/${seasonId}/matches/${matchId}/`)
+export const getStandings = (organizationId: number, leagueId: number, seasonId: number) =>
+  list<Standing>(`/organizations/${organizationId}/leagues/${leagueId}/seasons/${seasonId}/standings/`)
+export const getPlayerStatistics = (organizationId: number, leagueId: number, seasonId: number) =>
+  list<PlayerStatistic>(`/organizations/${organizationId}/leagues/${leagueId}/seasons/${seasonId}/statistics/players/`)
+export const getTopScorers = (organizationId: number, leagueId: number, seasonId: number) =>
+  list<PlayerStatistic>(`/organizations/${organizationId}/leagues/${leagueId}/seasons/${seasonId}/statistics/top-scorers/`)

@@ -9,6 +9,12 @@ import {
   createSeason,
   createTeam,
   getLeagues,
+  getFixtures,
+  getMatches,
+  getMatch,
+  getStandings,
+  getPlayerStatistics,
+  getTopScorers,
   getPlayers,
   getRoster,
   getSeasonTeams,
@@ -33,6 +39,24 @@ export function useSeasonTeams(organizationId: number | undefined, leagueId: num
 }
 export function useRoster(organizationId: number | undefined, leagueId: number | undefined, seasonId: number | undefined, seasonTeamId: number | undefined) {
   return useQuery({ queryKey: ['roster', organizationId, leagueId, seasonId, seasonTeamId], queryFn: () => getRoster(organizationId!, leagueId!, seasonId!, seasonTeamId!), enabled: Boolean(organizationId && leagueId && seasonId && seasonTeamId), retry: false })
+}
+export function useFixtures(organizationId: number | undefined, leagueId: number | undefined, seasonId: number | undefined) {
+  return useQuery({ queryKey: ['fixtures', organizationId, leagueId, seasonId], queryFn: () => getFixtures(organizationId!, leagueId!, seasonId!), enabled: Boolean(organizationId && leagueId && seasonId), retry: false })
+}
+export function useMatches(organizationId: number | undefined, leagueId: number | undefined, seasonId: number | undefined) {
+  return useQuery({ queryKey: ['matches', organizationId, leagueId, seasonId], queryFn: () => getMatches(organizationId!, leagueId!, seasonId!), enabled: Boolean(organizationId && leagueId && seasonId), retry: false })
+}
+export function useMatch(organizationId: number | undefined, leagueId: number | undefined, seasonId: number | undefined, matchId: number | undefined) {
+  return useQuery({ queryKey: ['match', organizationId, leagueId, seasonId, matchId], queryFn: () => getMatch(organizationId!, leagueId!, seasonId!, matchId!), enabled: Boolean(organizationId && leagueId && seasonId && matchId), retry: false })
+}
+export function useStandings(organizationId: number | undefined, leagueId: number | undefined, seasonId: number | undefined) {
+  return useQuery({ queryKey: ['standings', organizationId, leagueId, seasonId], queryFn: () => getStandings(organizationId!, leagueId!, seasonId!), enabled: Boolean(organizationId && leagueId && seasonId), retry: false })
+}
+export function usePlayerStatistics(organizationId: number | undefined, leagueId: number | undefined, seasonId: number | undefined) {
+  return useQuery({ queryKey: ['player-statistics', organizationId, leagueId, seasonId], queryFn: () => getPlayerStatistics(organizationId!, leagueId!, seasonId!), enabled: Boolean(organizationId && leagueId && seasonId), retry: false })
+}
+export function useTopScorers(organizationId: number | undefined, leagueId: number | undefined, seasonId: number | undefined) {
+  return useQuery({ queryKey: ['top-scorers', organizationId, leagueId, seasonId], queryFn: () => getTopScorers(organizationId!, leagueId!, seasonId!), enabled: Boolean(organizationId && leagueId && seasonId), retry: false })
 }
 
 function invalidate(client: ReturnType<typeof useQueryClient>, keys: unknown[][]) {

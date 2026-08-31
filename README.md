@@ -124,6 +124,15 @@ organization/league/season/team IDs, and invalidates the affected collection
 after each successful mutation. The page explicitly handles loading, error,
 and empty states for every collection.
 
+Stage 11 adds the league dashboard at `/leagues/:leagueId`. The dashboard keeps
+the organization and selected season in the URL, then uses TanStack Query to
+load league information, fixtures, matches, standings, teams, and player
+statistics. Its overview highlights upcoming fixtures, recent results, the
+table, and top scorers; dedicated routes expose fixtures, table, teams,
+statistics, and match detail views. These are read-only views over the existing
+REST API; live updates are intentionally deferred to the WebSocket work in
+Stage 12.
+
 For a browser client, request `/api/v1/auth/csrf/` first, then send the
 `csrftoken` cookie value in the `X-CSRFToken` header for register, login, and
 logout. Cross-origin requests must include credentials; local origins are
