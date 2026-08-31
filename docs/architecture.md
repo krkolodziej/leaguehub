@@ -13,6 +13,8 @@ flowchart LR
   Django --> Redis
   CeleryWorker --> Redis
   CeleryBeat --> Redis
+  CeleryWorker --> MatchReportGenerator
+  MatchReportGenerator -. optional .-> LLM
 ```
 
 HTTP mutations remain transactional and publish live updates after commit.
