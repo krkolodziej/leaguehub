@@ -4,8 +4,9 @@ import type { ReactNode } from 'react'
 import { ErrorState } from '../components/ErrorState'
 import { LoadingState } from '../components/LoadingState'
 import { useOrganizations } from '../lib/organizations'
-import { useFixtures, useLeagues, useMatches, useMatch, usePlayerStatistics, useSeasonTeams, useSeasons, useStandings, useTopScorers } from '../lib/management'
-import type { Fixture, Match, PlayerStatistic, Standing } from '../lib/api'
+import { useFixtures, useLeagues, useMatches, useMatch, useMatchEvents, usePlayerStatistics, useSeasonTeams, useSeasons, useStandings, useTopScorers } from '../lib/management'
+import type { Fixture, Match, MatchEvent, PlayerStatistic, Standing } from '../lib/api'
+import { useLiveMatch } from '../lib/realtime'
 
 type DashboardView = 'overview' | 'fixtures' | 'table' | 'teams' | 'statistics'
 
@@ -64,12 +65,14 @@ export function MatchPage() {
   const seasonId = Number(searchParams.get('season')) || undefined
   const matchId = Number(matchParam) || undefined
   const match = useMatch(organizationId, leagueId, seasonId, matchId)
+  const events = useMatchEvents(organizationId, leagueId, seasonId, matchId)
+  const liveStatus = useLiveMatch(organizationId, leagueId, seasonId, matchId)
   if (!organizationId || !leagueId || !seasonId) return <ErrorState error={new Error('This match link is missing organization and season context.')} />
   if (match.isPending) return <LoadingState label="Loading match…" />
   if (match.isError) return <ErrorState error={match.error} retry={() => void match.refetch()} />
   if (!match.data) return <ErrorState error={new Error('Match not found.')} />
   const item = match.data
-  return <div className="league-page"><Link className="back-link" to={dashboardPath(leagueId, 'fixtures', organizationId, seasonId)}>← Back to fixtures</Link><section className="match-card match-detail"><p className="eyebrow">Match #{item.id} · {item.status.toLowerCase()}</p><div className="scoreline"><div><strong>{item.home_team_name}</strong><span>{item.home_score}</span></div><div className="score-divider">:</div><div><strong>{item.away_team_name}</strong><span>{item.away_score}</span></div></div><p className="muted">Fixture #{item.fixture_id}</p></section></div>
+  return <div className="league-page"><Link className="back-link" to={dashboardPath(leagueId, 'fixtures', organizationId, seasonId)}>← Back to fixtures</Link><section className="match-card match-detail"><div className="match-heading"><p className="eyebrow">Match #{item.id} · {item.status.toLowerCase()}</p><span className={`live-status ${liveStatus}`}>{liveStatus === 'connected' ? 'Live updates connected' : liveStatus === 'reconnecting' ? 'Reconnecting…' : 'Connecting…'}</span></div><div className="scoreline"><div><strong>{item.home_team_name}</strong><span>{item.home_score}</span></div><div className="score-divider">:</div><div><strong>{item.away_team_name}</strong><span>{item.away_score}</span></div></div><p className="muted">Fixture #{item.fixture_id}</p></section><EventTimeline events={events.data ?? []} query={events} /></div>
 }
 
 function OverviewView({ fixtures, matches, standings, scorers, queries, organizationId, leagueId, seasonId }: { fixtures: Fixture[]; matches: Match[]; standings: Standing[]; scorers: PlayerStatistic[]; queries: Record<string, { isPending: boolean; isError: boolean; error: unknown; refetch: () => unknown }>; organizationId: number; leagueId: number; seasonId: number }) {
@@ -99,6 +102,7 @@ function FixtureRow({ fixture, match, organizationId, leagueId, seasonId }: { fi
 function MatchRow({ match, organizationId, leagueId, seasonId }: { match: Match; organizationId: number; leagueId: number; seasonId: number }) { return <Link className="fixture-link" to={`/matches/${match.id}?organization=${organizationId}&league=${leagueId}&season=${seasonId}`}><div className="fixture-row"><span className="round-label">{match.status === 'LIVE' ? 'LIVE' : 'FT'}</span><div><strong>{match.home_team_name}</strong><span className="versus">vs</span><strong>{match.away_team_name}</strong></div><span className="score-badge">{match.home_score} – {match.away_score}</span></div></Link> }
 function MiniTable({ rows }: { rows: Standing[] }) { return <div className="mini-table">{rows.map((row, index) => <div className="mini-row" key={row.team_id}><span>{index + 1}</span><strong>{row.team_name}</strong><b>{row.pts} pts</b></div>)}</div> }
 function EmptyCard({ title, text }: { title: string; text: string }) { return <section className="empty-card"><h2>{title}</h2><p className="muted">{text}</p></section> }
+function EventTimeline({ events, query }: { events: MatchEvent[]; query: { isPending: boolean; isError: boolean; error: unknown; refetch: () => unknown } }) { return <DashboardSection title="Match events" description="Goals, cards, and substitutions arrive here without refreshing." query={query}>{events.length === 0 ? <EmptyCard title="No events yet" text="Events will appear when the match is live." /> : <div className="event-list">{events.map((event) => <div className="event-row" key={event.id}><strong>{event.minute}'</strong><span>{event.event_type.replace('_', ' ').toLowerCase()}</span><span className="item-id">Player #{event.player_id}</span></div>)}</div>}</DashboardSection> }
 function getDashboardView(pathname: string): DashboardView { const segment = pathname.split('/').filter(Boolean).pop(); return segment === 'fixtures' || segment === 'table' || segment === 'teams' || segment === 'statistics' ? segment : 'overview' }
 function dashboardPath(leagueId: number, view: DashboardView, organizationId: number, seasonId?: number) { const suffix = view === 'overview' ? '' : `/${view}`; const season = seasonId ? `&season=${seasonId}` : ''; return `/leagues/${leagueId}${suffix}?organization=${organizationId}${season}` }
 function formatDate(value: string) { return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) }

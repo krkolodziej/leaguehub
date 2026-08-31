@@ -133,6 +133,15 @@ statistics, and match detail views. These are read-only views over the existing
 REST API; live updates are intentionally deferred to the WebSocket work in
 Stage 12.
 
+Stage 12 adds the live match center. Django Channels exposes an authenticated
+WebSocket at the match scope, while HTTP remains responsible for lifecycle
+commands and event mutations. Successful match creation, transitions, and
+events schedule a post-commit snapshot for the Redis channel group, so a
+failed transaction is never broadcast. The React match view subscribes to the
+socket, updates the TanStack Query match/event cache, displays connection
+status, and retries with exponential backoff after a disconnect. The Vite
+development proxy forwards `/ws` to the ASGI server.
+
 For a browser client, request `/api/v1/auth/csrf/` first, then send the
 `csrftoken` cookie value in the `X-CSRFToken` header for register, login, and
 logout. Cross-origin requests must include credentials; local origins are
