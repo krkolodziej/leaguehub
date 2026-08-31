@@ -182,8 +182,8 @@ docker compose --env-file .env.production -f compose.production.yml up -d --buil
 docker compose --env-file .env.production -f compose.production.yml exec backend python manage.py seed_demo
 ```
 
-Open `http://localhost:8080`, sign in with `demo@example.com` and the value of
-`DEMO_USER_PASSWORD`, and browse the seeded league. Stop it without deleting
+Open `http://localhost:8080`, sign in with `demo@leaguehub.app` and the
+password `demo1234`, and browse the seeded league. Stop it without deleting
 named volumes with:
 
 ```bash
@@ -225,9 +225,26 @@ for detailed design, constraints, and the demo flow.
 
 ## Demo data
 
-`python manage.py seed_demo` creates (or safely reuses) one organization,
-league, season, four teams, rostered players, six finished fixtures, and their
-scores. Running it repeatedly produces the same records.
+`python manage.py seed_demo` builds one organization, a league and season,
+twelve clubs with full squads, a complete double round robin of 132 fixtures,
+and results for roughly the first 60 per cent of the calendar. Scores come from
+seeded match events, so standings and player statistics are derived from the
+same data an operator would enter by hand.
+
+The command is idempotent: running it again leaves the existing dataset alone.
+Pass `--flush` to discard the seeded records and rebuild them.
+
+```bash
+python manage.py seed_demo --flush
+```
+
+It creates three accounts, one per role, all with the password `demo1234`:
+
+| Email | Role |
+| --- | --- |
+| `demo@leaguehub.app` | Owner |
+| `admin@leaguehub.app` | Admin |
+| `member@leaguehub.app` | Member |
 
 Stop the infrastructure when finished:
 

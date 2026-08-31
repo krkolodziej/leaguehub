@@ -14,7 +14,7 @@ WebSocket traffic, and gives health probes a tiny independent endpoint.
 ## How to demonstrate the app
 
 Start the production-like Compose profile, run `seed_demo`, open the frontend,
-sign in as `demo@example.com`, and browse the seeded league dashboard, fixtures,
+sign in as `demo@leaguehub.app`, and browse the seeded league dashboard, fixtures,
 finished matches, standings, and notifications.
 
 ## Operational boundaries
