@@ -88,6 +88,7 @@ export type SeasonTeam = { id: number; season_id: number; team_id: number; team_
 export type RosterEntry = { id: number; season_team_id: number; player_id: number; player_name: string; shirt_number: number | null; position: string; is_captain: boolean }
 export type Fixture = { id: number; season_id: number; round_number: number; leg: number; home_team_id: number; home_team_name: string; away_team_id: number; away_team_name: string; scheduled_at: string | null }
 export type Match = { id: number; fixture_id: number; season_id: number; home_team_id: number; home_team_name: string; away_team_id: number; away_team_name: string; status: string; home_score: number; away_score: number; started_at: string | null; finished_at: string | null }
+export type MatchEvent = { id: number; event_type: string; minute: number; team_id: number; player_id: number; related_player_id: number | null }
 export type Standing = { team_id: number; team_name: string; mp: number; wins: number; draws: number; losses: number; gf: number; ga: number; gd: number; pts: number }
 export type PlayerStatistic = { id: number; full_name: string; goals: number; yellow_cards: number; red_cards: number }
 
@@ -153,6 +154,8 @@ export const getMatches = (organizationId: number, leagueId: number, seasonId: n
   list<Match>(`/organizations/${organizationId}/leagues/${leagueId}/seasons/${seasonId}/matches/`)
 export const getMatch = (organizationId: number, leagueId: number, seasonId: number, matchId: number) =>
   apiRequest<Match>(`/organizations/${organizationId}/leagues/${leagueId}/seasons/${seasonId}/matches/${matchId}/`)
+export const getMatchEvents = (organizationId: number, leagueId: number, seasonId: number, matchId: number) =>
+  list<MatchEvent>(`/organizations/${organizationId}/leagues/${leagueId}/seasons/${seasonId}/matches/${matchId}/events/`)
 export const getStandings = (organizationId: number, leagueId: number, seasonId: number) =>
   list<Standing>(`/organizations/${organizationId}/leagues/${leagueId}/seasons/${seasonId}/standings/`)
 export const getPlayerStatistics = (organizationId: number, leagueId: number, seasonId: number) =>

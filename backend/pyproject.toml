@@ -8,6 +8,9 @@ version = "0.1.0"
 description = "LeagueHub backend bootstrap"
 requires-python = ">=3.13,<3.14"
 dependencies = [
+    "channels>=4.2,<5",
+    "channels-redis>=4.3,<5",
+    "daphne>=4.2,<5",
     "Django>=6.0.8,<6.1",
     "django-cors-headers>=4.9,<5",
     "psycopg[binary]>=3.3.4,<3.4",

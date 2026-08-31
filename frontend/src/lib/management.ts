@@ -12,6 +12,7 @@ import {
   getFixtures,
   getMatches,
   getMatch,
+  getMatchEvents,
   getStandings,
   getPlayerStatistics,
   getTopScorers,
@@ -48,6 +49,9 @@ export function useMatches(organizationId: number | undefined, leagueId: number 
 }
 export function useMatch(organizationId: number | undefined, leagueId: number | undefined, seasonId: number | undefined, matchId: number | undefined) {
   return useQuery({ queryKey: ['match', organizationId, leagueId, seasonId, matchId], queryFn: () => getMatch(organizationId!, leagueId!, seasonId!, matchId!), enabled: Boolean(organizationId && leagueId && seasonId && matchId), retry: false })
+}
+export function useMatchEvents(organizationId: number | undefined, leagueId: number | undefined, seasonId: number | undefined, matchId: number | undefined) {
+  return useQuery({ queryKey: ['match-events', organizationId, leagueId, seasonId, matchId], queryFn: () => getMatchEvents(organizationId!, leagueId!, seasonId!, matchId!), enabled: Boolean(organizationId && leagueId && seasonId && matchId), retry: false })
 }
 export function useStandings(organizationId: number | undefined, leagueId: number | undefined, seasonId: number | undefined) {
   return useQuery({ queryKey: ['standings', organizationId, leagueId, seasonId], queryFn: () => getStandings(organizationId!, leagueId!, seasonId!), enabled: Boolean(organizationId && leagueId && seasonId), retry: false })

@@ -6,6 +6,7 @@ from django.utils import timezone
 from apps.competitions.models import Fixture, Player, RosterEntry, Team
 
 from .models import Match, MatchEvent
+from .realtime import schedule_match_update
 
 
 class MatchLifecycleError(Exception):
@@ -48,7 +49,9 @@ def create_match_from_fixture(fixture: Fixture) -> Match:
         locked_fixture = Fixture.objects.select_for_update().get(pk=fixture.pk)
         if Match.objects.filter(fixture=locked_fixture).exists():
             raise MatchLifecycleError("A match already exists for this fixture.")
-        return Match.objects.create(fixture=locked_fixture)
+        match = Match.objects.create(fixture=locked_fixture)
+        schedule_match_update(match.pk)
+        return match
 
 
 def transition_match(match: Match, target_status: Match.Status) -> Match:
@@ -67,6 +70,7 @@ def transition_match(match: Match, target_status: Match.Status) -> Match:
         if target_status == Match.Status.FINISHED:
             locked_match.finished_at = now
         locked_match.save(update_fields=["status", "started_at", "finished_at", "updated_at"])
+        schedule_match_update(locked_match.pk)
         return locked_match
 
 
@@ -148,4 +152,5 @@ def add_match_event(
             )
             setattr(locked_match, score_field, getattr(locked_match, score_field) + 1)
             locked_match.save(update_fields=[score_field, "updated_at"])
+        schedule_match_update(locked_match.pk, event_id=event.pk)
         return event
