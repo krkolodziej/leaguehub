@@ -1,0 +1,34 @@
+# Free-tier deployment. The database lives on Neon rather than on Render,
+# because a free Render Postgres is deleted 30 days after it is created; a Neon
+# free project is permanent. Paste the Neon connection string into DATABASE_URL
+# when the blueprint prompts for it.
+#
+# A free instance sleeps after 15 minutes without traffic and takes about a
+# minute to wake, so the first request after a quiet spell is slow.
+
+services:
+  - type: web
+    name: leaguehub
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/v1/health/
+    autoDeployTrigger: commit
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      # Neon, including ?sslmode=require. Use the pooled connection string.
+      - key: DATABASE_URL
+        sync: false
+      # Render injects RENDER_EXTERNAL_HOSTNAME, and production settings add it
+      # to ALLOWED_HOSTS and CSRF_TRUSTED_ORIGINS on their own, so neither has
+      # to be set by hand before the hostname exists.
+      #
+      # Pre-deploy commands are a paid feature, so migrations and seeding run
+      # from the container entrypoint instead. Both are safe to repeat on every
+      # wake from sleep.
+      - key: RUN_RELEASE_ON_START
+        value: "true"
+      - key: WEB_CONCURRENCY
+        value: "1"

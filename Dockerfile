@@ -28,6 +28,7 @@ RUN pip install --no-cache-dir uv \
     && uv sync --locked --no-dev
 
 COPY backend /app/backend
+RUN chmod +x /app/backend/docker-entrypoint.sh
 COPY --from=frontend /app/dist /app/spa
 
 WORKDIR /app/backend
@@ -45,11 +46,7 @@ RUN DJANGO_SECRET_KEY=build-only \
 ENV WEB_CONCURRENCY=1
 EXPOSE 8000
 
-# uvicorn workers keep this ASGI, so the match WebSocket still works under gunicorn.
-CMD ["sh", "-c", "gunicorn config.asgi:application \
-  --worker-class uvicorn.workers.UvicornWorker \
-  --bind 0.0.0.0:${PORT:-8000} \
-  --workers ${WEB_CONCURRENCY:-1} \
-  --timeout 60 \
-  --access-logfile - \
-  --error-logfile -"]
+# The entrypoint runs migrations and seeding when the platform has no release
+# phase, then execs gunicorn. uvicorn workers keep this ASGI, so the match
+# WebSocket still works under gunicorn.
+CMD ["./docker-entrypoint.sh"]

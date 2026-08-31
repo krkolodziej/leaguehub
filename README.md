@@ -193,17 +193,65 @@ in the [development log](docs/CHANGELOG.md).
 
 ## Deploying
 
-The deployment target is [Railway](https://railway.com), configured in
-[`railway.json`](railway.json). One service builds the root
-[`Dockerfile`](Dockerfile), which compiles the SPA and then serves it and the
-API from the same origin under gunicorn with a uvicorn worker class. Static
-files go through WhiteNoise; the ASGI worker keeps the live-match WebSocket
-working.
+One service builds the root [`Dockerfile`](Dockerfile), which compiles the SPA
+and then serves it and the API from the same origin under gunicorn with a
+uvicorn worker class. Static files go through WhiteNoise; the ASGI worker keeps
+the live-match WebSocket working. The image is plain Docker and takes its
+database from `DATABASE_URL`, so it runs unchanged on any container host.
 
-Serving both halves from one origin is deliberate. Split across two
-`*.up.railway.app` subdomains they would be cross-site, because that suffix is
-on the Public Suffix List, and the `SameSite=Lax` session cookie would never be
-sent with an API call.
+Serving both halves from one origin is deliberate. Split across two subdomains
+of a platform's shared domain they would be cross-site, because those suffixes
+are on the Public Suffix List, and the `SameSite=Lax` session cookie would never
+be sent with an API call.
+
+Two configurations are checked in: [`render.yaml`](render.yaml) for a free
+deployment and [`railway.json`](railway.json) for Railway. Neither needs the
+hostname up front — production settings read `RENDER_EXTERNAL_HOSTNAME` or
+`RAILWAY_PUBLIC_DOMAIN` and add it to `ALLOWED_HOSTS` and
+`CSRF_TRUSTED_ORIGINS` themselves.
+
+## Deploying free: Render and Neon
+
+Render runs the container, Neon holds the database. Both have a permanent free
+plan and neither asks for a card.
+
+The database is on Neon rather than Render on purpose: **a free Render Postgres
+is deleted 30 days after it is created**, while a free Neon project is
+permanent.
+
+1. Create a Postgres project at [neon.com](https://neon.com) and copy the
+   pooled connection string (it ends in `?sslmode=require`).
+2. At [render.com](https://render.com), choose **New → Blueprint** and point it
+   at this repository. Render reads `render.yaml` and asks for one value:
+   paste the Neon string into `DATABASE_URL`.
+3. Deploy. The container applies migrations and seeds the league on start, so
+   the first page load already has a full season behind it.
+
+What free costs you:
+
+- The service **sleeps after 15 minutes** without traffic and takes about a
+  minute to wake, so the first visit after a quiet spell is slow.
+- 750 instance hours per workspace per month.
+- Neon suspends idle compute too, adding a second or two to the first query.
+- Live match updates are fanned out in-process, because there is no Redis. That
+  is why `WEB_CONCURRENCY` is `1`; a second worker would not see them.
+
+Pre-deploy commands are a paid Render feature, so `RUN_RELEASE_ON_START=true`
+makes [`backend/docker-entrypoint.sh`](backend/docker-entrypoint.sh) run
+`migrate` and `seed_demo` before gunicorn starts. Both are safe to repeat, which
+matters because every wake from sleep restarts the container.
+
+The seeded season is anchored to the day `seed_demo` ran: one match is in
+progress *today* and roughly 60 per cent of the calendar is behind it. Weeks
+later that live match sits in the past. Re-run
+`python manage.py seed_demo --flush` to move the season back onto the current
+date.
+
+## Deploying on Railway
+
+Railway has no permanent free plan that fits this app: the trial gives $5 of
+credit for 30 days, and the ongoing free plan's $1 monthly credit does not cover
+a web service and a database together. Budget about $5 a month.
 
 ### First deploy
 
@@ -227,9 +275,8 @@ so a fresh database arrives populated. `seed_demo` is idempotent, so it is a
 no-op on every later deploy; use `railway run python manage.py seed_demo --flush`
 to rebuild the dataset deliberately.
 
-Finally, add the generated domain to `DJANGO_ALLOWED_HOSTS` and
-`DJANGO_CSRF_TRUSTED_ORIGINS` and redeploy — Railway only mints the hostname
-once the service exists.
+`RAILWAY_PUBLIC_DOMAIN` is injected by the platform and picked up
+automatically, so there is no second deploy just to register the hostname.
 
 ### Production environment
 
@@ -237,8 +284,8 @@ once the service exists.
 | --- | --- | --- |
 | `DJANGO_SETTINGS_MODULE` | baked into the image | `config.settings.production` |
 | `DJANGO_SECRET_KEY` | **yes** | A long random string. The process refuses to start without it. |
-| `DJANGO_ALLOWED_HOSTS` | **yes** | Public hostname, no scheme: `myapp.up.railway.app` |
-| `DJANGO_CSRF_TRUSTED_ORIGINS` | **yes** | Public origin, with scheme: `https://myapp.up.railway.app` |
+| `DJANGO_ALLOWED_HOSTS` | only for a custom domain | Public hostname, no scheme. The platform's own domain is picked up automatically. |
+| `DJANGO_CSRF_TRUSTED_ORIGINS` | only for a custom domain | Public origin, with scheme. Same automatic pickup. |
 | `DATABASE_URL` | **yes** | `${{Postgres.DATABASE_URL}}`. Overrides every `POSTGRES_*` value. |
 | `PORT` | injected | Supplied by the platform; the image binds it. |
 | `SPA_ROOT` | baked into the image | `/app/spa`. Unset it and Django serves the API only. |
@@ -249,6 +296,7 @@ once the service exists.
 | `DJANGO_HSTS_SECONDS` | no | Defaults to one year. |
 | `REDIS_URL` | no | Absent: live updates are fanned out in-process and notification tasks run inline. |
 | `WEB_CONCURRENCY` | no | Defaults to `1`. Raise it **only** alongside `REDIS_URL`. |
+| `RUN_RELEASE_ON_START` | no | `true` makes the entrypoint run `migrate` and `seed_demo`. Needed where the platform has no release phase. |
 | `DJANGO_LOG_LEVEL` | no | Defaults to `INFO`. |
 | `VITE_DEMO_EMAIL` / `VITE_DEMO_PASSWORD` | build time | Credentials behind the one-click sign-in button; build with an empty email to hide it. |
 
@@ -314,7 +362,8 @@ leaguehub/
 ├── frontend/                 React SPA
 ├── docs/                     architecture, domain model, design, development log
 ├── Dockerfile                single-service production image
-├── railway.json              deployment configuration
+├── render.yaml               free deployment (Render + Neon)
+├── railway.json              Railway deployment
 ├── compose.yml               local PostgreSQL and Redis
 ├── compose.production.yml    Nginx-fronted production profile
 ├── .env.example

@@ -12,6 +12,20 @@ ALLOWED_HOSTS = _env_list("DJANGO_ALLOWED_HOSTS", [])
 CSRF_TRUSTED_ORIGINS = _env_list("DJANGO_CSRF_TRUSTED_ORIGINS", [])
 CORS_ALLOWED_ORIGINS = _env_list("DJANGO_CORS_ALLOWED_ORIGINS", [])
 
+# A platform mints the public hostname only once the service exists, so
+# requiring it up front forces a deploy, read the domain, set the variables,
+# deploy again dance. Both of these are injected by the platform itself, so
+# adopt whichever is present in addition to anything set by hand.
+for _hostname_var in ("RENDER_EXTERNAL_HOSTNAME", "RAILWAY_PUBLIC_DOMAIN"):
+    _hostname = os.getenv(_hostname_var)
+    if not _hostname:
+        continue
+    if _hostname not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_hostname)
+    _origin = f"https://{_hostname}"
+    if _origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(_origin)
+
 # These defaults are safe behind TLS. The local production Compose example
 # explicitly disables redirects/cookie flags because it serves plain HTTP.
 SECURE_SSL_REDIRECT = _env_bool("DJANGO_SECURE_SSL_REDIRECT", True)

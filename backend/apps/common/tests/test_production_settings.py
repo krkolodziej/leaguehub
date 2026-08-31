@@ -94,7 +94,61 @@ def test_dockerfile_and_railway_config_agree_on_the_release_step():
     railway = (root / "railway.json").read_text(encoding="utf-8")
     dockerfile = (root / "Dockerfile").read_text(encoding="utf-8")
 
+    entrypoint = (root / "backend" / "docker-entrypoint.sh").read_text(encoding="utf-8")
+
     assert "migrate --noinput" in railway and "seed_demo" in railway
-    assert "gunicorn" in dockerfile
-    assert "uvicorn.workers.UvicornWorker" in dockerfile
+    assert "docker-entrypoint.sh" in dockerfile
     assert "SPA_ROOT=/app/spa" in dockerfile
+    # ASGI under gunicorn, so the live-match WebSocket survives.
+    assert "uvicorn.workers.UvicornWorker" in entrypoint
+
+
+@pytest.mark.parametrize(
+    "platform_var,hostname",
+    [
+        ("RENDER_EXTERNAL_HOSTNAME", "leaguehub.onrender.com"),
+        ("RAILWAY_PUBLIC_DOMAIN", "leaguehub.up.railway.app"),
+    ],
+)
+def test_platform_hostname_is_adopted_without_a_second_deploy(
+    monkeypatch, platform_var, hostname
+):
+    """A host is only minted once the service exists, so read it back from the
+    platform rather than making the operator deploy, copy it, and deploy again."""
+    for key, value in PRODUCTION_ENV.items():
+        monkeypatch.setenv(key, value)
+    monkeypatch.delenv("RENDER_EXTERNAL_HOSTNAME", raising=False)
+    monkeypatch.delenv("RAILWAY_PUBLIC_DOMAIN", raising=False)
+    monkeypatch.setenv(platform_var, hostname)
+
+    production = importlib.reload(importlib.import_module("config.settings.production"))
+
+    assert hostname in production.ALLOWED_HOSTS
+    assert f"https://{hostname}" in production.CSRF_TRUSTED_ORIGINS
+    # Anything set by hand survives alongside it.
+    assert "leaguehub.example" in production.ALLOWED_HOSTS
+
+
+def test_release_step_runs_from_the_entrypoint_when_the_platform_lacks_one():
+    root = Path(__file__).resolve().parents[4]
+    entrypoint = (root / "backend" / "docker-entrypoint.sh").read_text(encoding="utf-8")
+    dockerfile = (root / "Dockerfile").read_text(encoding="utf-8")
+
+    assert 'RUN_RELEASE_ON_START' in entrypoint
+    assert "migrate --noinput" in entrypoint and "seed_demo" in entrypoint
+    # exec, so gunicorn keeps PID 1 and receives the platform's stop signal.
+    assert "exec gunicorn" in entrypoint
+    assert "docker-entrypoint.sh" in dockerfile
+
+
+def test_render_blueprint_targets_the_free_plan_and_seeds_on_start():
+    root = Path(__file__).resolve().parents[4]
+    blueprint = (root / "render.yaml").read_text(encoding="utf-8")
+
+    assert "plan: free" in blueprint
+    assert "runtime: docker" in blueprint
+    assert "healthCheckPath: /api/v1/health/" in blueprint
+    assert "RUN_RELEASE_ON_START" in blueprint
+    # The database is deliberately not a Render one: a free Render Postgres is
+    # deleted 30 days after creation.
+    assert "databases:" not in blueprint
