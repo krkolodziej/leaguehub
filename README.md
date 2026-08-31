@@ -9,6 +9,10 @@ contains the backend foundation, Django session authentication, multi-tenant
 organizations/RBAC, the league competition domain, deterministic round-robin
 fixture generation, match lifecycle events, and derived standings/statistics.
 
+The current release also includes a production-like Docker profile with Nginx,
+secure environment-driven settings, health checks, and an idempotent demo data
+command.
+
 ## Stack
 
 - Backend: Python 3.13, Django 6.0, Django REST Framework, PostgreSQL, Redis,
@@ -167,6 +171,64 @@ configured through `DJANGO_CORS_ALLOWED_ORIGINS`.
 Development settings use PostgreSQL from Compose. Pytest uses an isolated
 in-memory SQLite database so unit tests do not depend on a running service.
 
+## Production-like local run
+
+Copy the example values, replace the marked secret/passwords, then start the
+complete stack (Nginx, Django, PostgreSQL, Redis, Celery worker and beat):
+
+```bash
+cp .env.production.example .env.production
+docker compose --env-file .env.production -f compose.production.yml up -d --build --wait
+docker compose --env-file .env.production -f compose.production.yml exec backend python manage.py seed_demo
+```
+
+Open `http://localhost:8080`, sign in with `demo@example.com` and the value of
+`DEMO_USER_PASSWORD`, and browse the seeded league. Stop it without deleting
+named volumes with:
+
+```bash
+docker compose --env-file .env.production -f compose.production.yml down
+```
+
+Production settings require `DJANGO_SECRET_KEY`, set `DEBUG=False`, restrict
+hosts/origins, and enable secure cookies/HSTS by default. The checked-in local
+example disables TLS-only flags because it intentionally serves plain HTTP;
+set them to `true` behind HTTPS.
+
+## Architecture and domain model
+
+```mermaid
+flowchart LR
+  Browser --> Nginx --> Django
+  Django --> PostgreSQL
+  Django --> Redis
+  CeleryWorker --> Redis
+  CeleryBeat --> Redis
+```
+
+```mermaid
+erDiagram
+  ORGANIZATION ||--o{ LEAGUE : owns
+  LEAGUE ||--o{ SEASON : contains
+  SEASON ||--o{ SEASON_TEAM : includes
+  TEAM ||--o{ SEASON_TEAM : appears
+  SEASON_TEAM ||--o{ ROSTER_ENTRY : has
+  PLAYER ||--o{ ROSTER_ENTRY : assigned
+  SEASON ||--o{ FIXTURE : schedules
+  FIXTURE ||--|| MATCH : records
+  MATCH ||--o{ MATCH_EVENT : contains
+```
+
+See [architecture](docs/architecture.md), [domain model](docs/domain-model.md),
+[trade-offs](docs/tradeoffs.md), and [interview notes](docs/interview-notes.md)
+for detailed design, constraints, and the demo flow.
+
+## Demo data
+
+`python manage.py seed_demo` creates (or safely reuses) one organization,
+league, season, four teams, rostered players, six finished fixtures, and their
+scores. Running it repeatedly produces the same records.
+
 Stop the infrastructure when finished:
 
 ```bash
@@ -203,6 +265,8 @@ leaguehub/
 ├── frontend/
 ├── docs/
 ├── compose.yml
+├── compose.production.yml
 ├── .env.example
+├── .env.production.example
 └── README.md
 ```

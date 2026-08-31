@@ -442,13 +442,13 @@ dependencies = [
     { name = "daphne" },
     { name = "django" },
     { name = "django-cors-headers" },
+    { name = "djangorestframework" },
+    { name = "drf-spectacular" },
     { name = "psycopg", extra = ["binary"] },
 ]
 
 [package.dev-dependencies]
 dev = [
-    { name = "djangorestframework" },
-    { name = "drf-spectacular" },
     { name = "pytest" },
     { name = "pytest-django" },
     { name = "ruff" },
@@ -462,13 +462,13 @@ requires-dist = [
     { name = "daphne", specifier = ">=4.2,<5" },
     { name = "django", specifier = ">=6.0.8,<6.1" },
     { name = "django-cors-headers", specifier = ">=4.9,<5" },
+    { name = "djangorestframework", specifier = ">=3.18,<3.19" },
+    { name = "drf-spectacular", specifier = ">=0.30,<0.31" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.3.4,<3.4" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "djangorestframework", specifier = ">=3.18,<3.19" },
-    { name = "drf-spectacular", specifier = ">=0.30,<0.31" },
     { name = "pytest", specifier = ">=9.1,<10" },
     { name = "pytest-django", specifier = ">=4.14,<5" },
     { name = "ruff", specifier = ">=0.16.3,<0.17" },
