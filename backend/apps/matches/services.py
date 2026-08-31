@@ -21,15 +21,6 @@ def _enqueue_match_finished_notification(match_id: int) -> None:
         logger.exception("Could not enqueue finished-match notification")
 
 
-def _enqueue_match_report(match_id: int) -> None:
-    from apps.ai_reports.tasks import generate_match_report
-
-    try:
-        generate_match_report.delay(match_id)
-    except Exception:  # pragma: no cover - broker availability is operational
-        logger.exception("Could not enqueue AI match report")
-
-
 class MatchLifecycleError(Exception):
     """Raised when a match transition is not allowed."""
 
@@ -96,7 +87,6 @@ def transition_match(match: Match, target_status: Match.Status) -> Match:
             transaction.on_commit(
                 lambda: _enqueue_match_finished_notification(locked_match.pk)
             )
-            transaction.on_commit(lambda: _enqueue_match_report(locked_match.pk))
         return locked_match
 
 

@@ -21,9 +21,6 @@ x-backend-environment: &backend-environment
   CELERY_BROKER_URL: redis://redis:6379/0
   CELERY_RESULT_BACKEND: redis://redis:6379/0
   DEMO_USER_PASSWORD: ${DEMO_USER_PASSWORD:-demo-only-change-me}
-  AI_MATCH_REPORT_PROVIDER: ${AI_MATCH_REPORT_PROVIDER:-template}
-  OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5-mini}
-  OPENAI_API_KEY: ${OPENAI_API_KEY:-}
 
 services:
   postgres:
