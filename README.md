@@ -142,6 +142,23 @@ socket, updates the TanStack Query match/event cache, displays connection
 status, and retries with exponential backoff after a disconnect. The Vite
 development proxy forwards `/ws` to the ASGI server.
 
+Stage 13 adds background jobs and in-app notifications. Celery uses Redis as
+its broker and result backend; Celery Beat scans a small 24-hour window every
+15 minutes for scheduled-match reminders. Finishing a match enqueues a
+post-match notification after the database transaction commits. Notification
+dedupe keys make task delivery idempotent, and only transient connection or
+timeout errors are eligible for bounded retry. Authenticated users can read
+their own notifications at `/api/v1/notifications/` and mark them as read;
+the React shell exposes the same data in a small notification menu.
+
+Run the background processes from `backend/` in separate terminals during
+development:
+
+```bash
+uv run celery -A config worker --loglevel=INFO
+uv run celery -A config beat --loglevel=INFO
+```
+
 For a browser client, request `/api/v1/auth/csrf/` first, then send the
 `csrftoken` cookie value in the `X-CSRFToken` header for register, login, and
 logout. Cross-origin requests must include credentials; local origins are

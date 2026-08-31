@@ -33,6 +33,16 @@
 .nav-link { padding: 0.55rem 0.75rem; border-radius: 0.45rem; color: var(--muted); font-size: 0.9rem; font-weight: 700; text-decoration: none; }
 .nav-link.active, .nav-link:hover { color: var(--primary-dark); background: #edf6f2; }
 .user-menu { display: flex; align-items: center; gap: 0.65rem; }
+.notifications-menu { position: relative; }
+.notification-button { display: inline-flex; align-items: center; gap: 0.4rem; }
+.notification-count { display: inline-grid; min-width: 1.2rem; height: 1.2rem; place-items: center; border-radius: 999px; color: #fff; background: #c75b4f; font-size: 0.68rem; }
+.notification-popover { position: absolute; z-index: 10; top: calc(100% + 0.6rem); right: 0; width: min(24rem, 90vw); padding: 0.9rem; border: 1px solid var(--line); border-radius: 0.8rem; background: #fff; box-shadow: 0 1rem 3rem rgb(21 55 70 / 15%); }
+.notification-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-bottom: 0.65rem; border-bottom: 1px solid #edf2f3; }
+.notification-list { display: grid; gap: 0.4rem; max-height: 24rem; overflow-y: auto; padding-top: 0.5rem; }
+.notification-item { display: grid; gap: 0.25rem; padding: 0.65rem; border: 0; border-radius: 0.5rem; color: var(--ink); background: #edf6f2; text-align: left; }
+.notification-item.read { background: #fbfdfe; }
+.notification-item:hover { background: #e2f1eb; }
+.notification-item span, .notification-item small { color: var(--muted); font-size: 0.76rem; line-height: 1.4; }
 .user-name { color: #49616c; font-size: 0.9rem; }
 .page-content { width: min(100% - 2rem, 76rem); margin: 0 auto; padding: clamp(2rem, 5vw, 4.5rem) 0; }
 .dashboard-page { display: grid; gap: 2rem; }
@@ -135,6 +145,7 @@
   .topnav { order: 3; flex-basis: 100%; }
   .user-menu { margin-left: auto; }
   .user-name { display: none; }
+  .notification-popover { position: fixed; top: 4.2rem; right: 0.75rem; }
   .page-heading { align-items: start; flex-direction: column; }
   .form-row { grid-template-columns: 1fr; }
   .management-grid { grid-template-columns: 1fr; }
