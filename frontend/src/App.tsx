@@ -8,6 +8,7 @@ import { AuthLayout } from './pages/AuthLayout'
 import { DashboardPage } from './pages/DashboardPage'
 import { LoginPage } from './pages/LoginPage'
 import { OrganizationPage } from './pages/OrganizationPage'
+import { LeagueDashboardPage, MatchPage } from './pages/LeagueDashboardPage'
 import { RegisterPage } from './pages/RegisterPage'
 import './App.css'
 
@@ -26,6 +27,9 @@ function App() {
         <Route element={<AppShell />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/organizations/:organizationId" element={<OrganizationPage />} />
+          <Route path="/leagues/:leagueId" element={<LeagueDashboardPage />} />
+          <Route path="/leagues/:leagueId/:view" element={<LeagueDashboardPage />} />
+          <Route path="/matches/:matchId" element={<MatchPage />} />
         </Route>
       </Route>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
