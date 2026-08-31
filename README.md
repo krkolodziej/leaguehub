@@ -1,6 +1,6 @@
 # LeagueHub
 
-LeagueHub is a portfolio-ready SaaS for managing amateur football leagues. It
+LeagueHub is an application for managing amateur football leagues. It
 will eventually cover organizations, seasons, teams, rosters, fixtures, live
 match events, standings, statistics, and notifications.
 
