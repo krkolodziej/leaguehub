@@ -30,7 +30,7 @@ export function DashboardPage() {
       ) : (
         <ul className="grid gap-px border border-chalk bg-chalk sm:grid-cols-2">
           {organizations.map((organization) => (
-            <li key={organization.id} className="bg-paper-raised">
+            <li key={organization.id} className="min-w-0 bg-paper-raised">
               <Link
                 className="flex items-center gap-3 px-4 py-4 hover:bg-pitch-wash"
                 to={`/organizations/${organization.id}`}
@@ -38,7 +38,7 @@ export function DashboardPage() {
                 <TeamCrest name={organization.name} size="lg" />
                 <span className="min-w-0">
                   <span className="flex items-baseline gap-2">
-                    <span className="truncate font-condensed text-lg font-semibold text-ink">
+                    <span className="min-w-0 truncate font-condensed text-lg font-semibold text-ink">
                       {organization.name}
                     </span>
                     {organization.my_role && (

@@ -384,7 +384,7 @@ function TeamsView({ teams, query }: { teams: SeasonTeam[]; query: Query }) {
             {teams.map((team) => (
               <li key={team.id} className="flex items-center gap-3 bg-paper-raised px-4 py-3">
                 <TeamCrest name={team.team_name} size="lg" />
-                <span className="truncate font-condensed text-base font-semibold text-ink">{team.team_name}</span>
+                <span className="min-w-0 truncate font-condensed text-base font-semibold text-ink">{team.team_name}</span>
               </li>
             ))}
           </ul>
@@ -494,7 +494,7 @@ function MiniTable({ rows }: { rows: Standing[] }) {
 
 function Panel({ title, description, link, children }: { title: string; description?: string; link?: string; children: ReactNode }) {
   return (
-    <section>
+    <section className="min-w-0">
       <div className="mb-3 flex items-baseline justify-between gap-4 border-b border-chalk pb-1.5">
         <div className="min-w-0">
           <h2 className="text-lg leading-tight">{title}</h2>

@@ -28,7 +28,7 @@ export function FixtureRow({ round, homeTeam, awayTeam, kickoff, match, href }: 
           R{round}
         </span>
         <span className="flex min-w-0 flex-1 items-center justify-end gap-2">
-          <span className="truncate text-right font-condensed text-base font-semibold text-ink">
+          <span className="min-w-0 truncate text-right font-condensed text-base font-semibold text-ink">
             {homeTeam}
           </span>
           <TeamCrest name={homeTeam} size="sm" />
@@ -41,7 +41,7 @@ export function FixtureRow({ round, homeTeam, awayTeam, kickoff, match, href }: 
         />
         <span className="flex min-w-0 flex-1 items-center gap-2">
           <TeamCrest name={awayTeam} size="sm" />
-          <span className="truncate font-condensed text-base font-semibold text-ink">{awayTeam}</span>
+          <span className="min-w-0 truncate font-condensed text-base font-semibold text-ink">{awayTeam}</span>
         </span>
       </div>
       <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 pl-0 sm:pl-11">

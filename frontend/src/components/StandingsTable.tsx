@@ -83,7 +83,7 @@ export function StandingsTable({ standings, matches, promotion = 3, relegation =
                         {position}
                       </span>
                       <TeamCrest name={row.team_name} size="sm" />
-                      <span className="truncate font-condensed text-base font-semibold text-ink">
+                      <span className="min-w-0 truncate font-condensed text-base font-semibold text-ink">
                         {row.team_name}
                       </span>
                     </span>

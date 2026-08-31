@@ -146,7 +146,7 @@ export function OrganizationPage() {
                 {(teams.data ?? []).map((team) => (
                   <li key={team.id} className="flex items-center gap-3 px-4 py-2.5">
                     <TeamCrest name={team.name} />
-                    <span className="truncate font-condensed text-base font-semibold">{team.name}</span>
+                    <span className="min-w-0 truncate font-condensed text-base font-semibold">{team.name}</span>
                   </li>
                 ))}
               </RuledList>
@@ -249,7 +249,7 @@ export function OrganizationPage() {
 
 function Section({ title, description, count, children }: { title: string; description: string; count?: number; children: ReactNode }) {
   return (
-    <section className="mt-8 first:mt-0">
+    <section className="mt-8 first:mt-0 min-w-0">
       <div className="mb-3 flex items-baseline justify-between gap-4 border-b border-chalk pb-1.5">
         <div>
           <h2 className="text-lg leading-tight">{title}</h2>
