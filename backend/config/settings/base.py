@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "apps.competitions",
     "apps.matches",
     "apps.notifications",
+    "apps.ai_reports",
 ]
 
 MIDDLEWARE = [

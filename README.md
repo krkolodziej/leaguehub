@@ -13,6 +13,12 @@ The current release also includes a production-like Docker profile with Nginx,
 secure environment-driven settings, health checks, and an idempotent demo data
 command.
 
+Stage 16 adds optional AI match reports. Finishing a match queues a separate
+Celery job that creates a minimal summary and stores a validated report at the
+match `report/` endpoint. The offline template provider is used by default;
+the OpenAI provider is opt-in through environment variables and cannot affect
+match results or standings.
+
 ## Stack
 
 - Backend: Python 3.13, Django 6.0, Django REST Framework, PostgreSQL, Redis,
@@ -222,6 +228,8 @@ erDiagram
 See [architecture](docs/architecture.md), [domain model](docs/domain-model.md),
 [trade-offs](docs/tradeoffs.md), and [interview notes](docs/interview-notes.md)
 for detailed design, constraints, and the demo flow.
+See [AI reports](docs/ai-reports.md) for provider configuration and failure
+isolation details.
 
 ## Demo data
 
