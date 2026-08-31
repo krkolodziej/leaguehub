@@ -91,6 +91,7 @@ export type Match = { id: number; fixture_id: number; season_id: number; home_te
 export type MatchEvent = { id: number; event_type: string; minute: number; team_id: number; player_id: number; related_player_id: number | null }
 export type Standing = { team_id: number; team_name: string; mp: number; wins: number; draws: number; losses: number; gf: number; ga: number; gd: number; pts: number }
 export type PlayerStatistic = { id: number; full_name: string; goals: number; yellow_cards: number; red_cards: number }
+export type Notification = { id: number; kind: string; title: string; message: string; read_at: string | null; created_at: string }
 
 export type Paginated<T> = {
   count: number
@@ -162,3 +163,7 @@ export const getPlayerStatistics = (organizationId: number, leagueId: number, se
   list<PlayerStatistic>(`/organizations/${organizationId}/leagues/${leagueId}/seasons/${seasonId}/statistics/players/`)
 export const getTopScorers = (organizationId: number, leagueId: number, seasonId: number) =>
   list<PlayerStatistic>(`/organizations/${organizationId}/leagues/${leagueId}/seasons/${seasonId}/statistics/top-scorers/`)
+
+export const getNotifications = () => list<Notification>('/notifications/')
+export const markNotificationRead = (notificationId: number) =>
+  apiRequest<Notification>(`/notifications/${notificationId}/read/`, { method: 'POST' })

@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "apps.organizations",
     "apps.competitions",
     "apps.matches",
+    "apps.notifications",
 ]
 
 MIDDLEWARE = [
@@ -88,6 +89,17 @@ CHANNEL_LAYERS = {
                 )
             ],
         },
+    },
+}
+
+REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", REDIS_URL)
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", REDIS_URL)
+CELERY_TASK_TIME_LIMIT = 60
+CELERY_BEAT_SCHEDULE = {
+    "dispatch-match-reminders-every-15-minutes": {
+        "task": "apps.notifications.tasks.dispatch_match_reminders",
+        "schedule": 900.0,
     },
 }
 

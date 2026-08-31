@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import logging
 
 from django.db import transaction
 from django.utils import timezone
@@ -7,6 +8,17 @@ from apps.competitions.models import Fixture, Player, RosterEntry, Team
 
 from .models import Match, MatchEvent
 from .realtime import schedule_match_update
+
+logger = logging.getLogger(__name__)
+
+
+def _enqueue_match_finished_notification(match_id: int) -> None:
+    from apps.notifications.tasks import notify_match_finished
+
+    try:
+        notify_match_finished.delay(match_id)
+    except Exception:  # pragma: no cover - broker availability is operational
+        logger.exception("Could not enqueue finished-match notification")
 
 
 class MatchLifecycleError(Exception):
@@ -71,6 +83,10 @@ def transition_match(match: Match, target_status: Match.Status) -> Match:
             locked_match.finished_at = now
         locked_match.save(update_fields=["status", "started_at", "finished_at", "updated_at"])
         schedule_match_update(locked_match.pk)
+        if target_status == Match.Status.FINISHED:
+            transaction.on_commit(
+                lambda: _enqueue_match_finished_notification(locked_match.pk)
+            )
         return locked_match
 
 
