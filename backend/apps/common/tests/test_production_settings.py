@@ -209,3 +209,16 @@ def test_image_build_can_import_production_settings(monkeypatch):
 
     # Must not raise: the build has no database and does not need one.
     importlib.reload(importlib.import_module("config.settings.production"))
+
+
+def test_only_fingerprinted_files_are_cached_forever(production):
+    """A cached index.html points at asset URLs that vanish on the next deploy,
+    which breaks returning visitors until they hard-refresh."""
+    immutable = production.WHITENOISE_IMMUTABLE_FILE_TEST
+
+    assert immutable("", "/assets/index-DlUejMxF.js") is True
+    assert immutable("", "/static/rest_framework/css/default.789dfb.css") is True
+    assert immutable("", "/index.html") is False
+    assert immutable("", "/favicon.svg") is False
+    # Anything not fingerprinted must be revalidated on every request.
+    assert production.WHITENOISE_MAX_AGE == 0

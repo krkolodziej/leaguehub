@@ -83,10 +83,22 @@ STORAGES = {
     },
 }
 WHITENOISE_ROOT = SPA_ROOT  # noqa: F405
-# index.html must never be cached, or a deploy leaves clients on a stale bundle
-# whose hashed asset URLs no longer exist.
 WHITENOISE_INDEX_FILE = True
-WHITENOISE_MAX_AGE = 31536000
+
+
+def _immutable_file_test(path, url):
+    """Cache fingerprinted files forever and everything else not at all.
+
+    Vite fingerprints what it writes to /assets/ and the manifest storage
+    fingerprints /static/, so both are safe to pin. index.html is fingerprinted
+    by nothing: caching it strands a returning visitor on a stale bundle whose
+    hashed asset URLs 404 after the next deploy.
+    """
+    return url.startswith("/assets/") or url.startswith("/static/")
+
+
+WHITENOISE_IMMUTABLE_FILE_TEST = _immutable_file_test
+WHITENOISE_MAX_AGE = 0
 WHITENOISE_SKIP_COMPRESS_EXTENSIONS = ["woff", "woff2", "gz", "br", "png", "jpg", "svg"]
 
 # Without a Redis service there is nowhere to fan match updates out to, and no
