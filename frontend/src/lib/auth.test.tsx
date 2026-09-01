@@ -47,7 +47,23 @@ describe('useLogout', () => {
     expect(result.current.isError).toBe(false)
   })
 
+  it('treats a permission-denied logout as an expired session too', async () => {
+    // With HTTP Basic removed, DRF reports "not authenticated" as 403.
+    const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } })
+    client.setQueryData(authQueryKey, { id: 1, email: 'a@b.c', first_name: '', last_name: '' })
+    logout.mockRejectedValue(
+      new ApiError(403, { detail: 'Not authenticated.', code: 'permission_denied' }),
+    )
+
+    const { result } = renderHook(() => useLogout(), { wrapper: wrapper(client) })
+    await act(async () => void result.current.mutate())
+
+    await waitFor(() => expect(client.getQueryData(authQueryKey)).toBeNull())
+    expect(result.current.isError).toBe(false)
+  })
+
   it('reports a genuine failure instead of pretending to sign out', async () => {
+    // A CSRF rejection comes from Django as HTML, so it carries no code.
     const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } })
     const user = { id: 1, email: 'a@b.c', first_name: '', last_name: '' }
     client.setQueryData(authQueryKey, user)

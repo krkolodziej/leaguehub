@@ -156,8 +156,11 @@ AUTH_USER_MODEL = "accounts.User"
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "EXCEPTION_HANDLER": "apps.common.exceptions.api_exception_handler",
+    # Session cookies only. HTTP Basic was here and had to go: it made DRF
+    # answer an unauthenticated request with "WWW-Authenticate: Basic", which
+    # makes a browser hold the SPA's fetch open waiting for its native
+    # credentials dialog. The app then never leaves its loading state.
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.BasicAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [

@@ -22,11 +22,14 @@ def make_owner(email="hardening-owner@example.com"):
 
 
 @pytest.mark.django_db
-def test_unauthenticated_api_returns_401_with_consistent_code():
+def test_unauthenticated_api_returns_a_consistent_error_shape():
+    """403 rather than 401: with session cookies as the only scheme, DRF has no
+    challenge to advertise, and advertising one breaks browser clients."""
     response = APIClient().get("/api/v1/organizations/")
 
-    assert response.status_code == 401
-    assert response.data["code"] == "authentication_required"
+    assert response.status_code == 403
+    assert response.data["code"] == "permission_denied"
+    assert "WWW-Authenticate" not in response.headers
 
 
 @pytest.mark.django_db
@@ -129,3 +132,15 @@ def test_fixture_conflict_has_consistent_conflict_code():
 
     assert conflict.status_code == 409
     assert conflict.data["code"] == "conflict"
+
+
+@pytest.mark.django_db
+def test_unauthenticated_api_never_sends_a_browser_auth_challenge(client):
+    """A `WWW-Authenticate: Basic` header makes a browser hold the SPA's fetch
+    open waiting for its native credentials dialog, so the app never leaves its
+    loading state. This cost a broken production deployment to find.
+    """
+    for path in ("/api/v1/auth/me/", "/api/v1/organizations/"):
+        response = client.get(path)
+        assert response.status_code in (401, 403), path
+        assert "WWW-Authenticate" not in response.headers, path

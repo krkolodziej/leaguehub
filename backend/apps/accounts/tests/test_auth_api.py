@@ -107,4 +107,4 @@ def test_logout_clears_session_and_me_requires_authentication(csrf_client):
     logout_response = csrf_client.post("/api/v1/auth/logout/", {}, format="json")
 
     assert logout_response.status_code == 204
-    assert csrf_client.get("/api/v1/auth/me/").status_code == 401
+    assert csrf_client.get("/api/v1/auth/me/").status_code == 403
