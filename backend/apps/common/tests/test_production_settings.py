@@ -179,3 +179,33 @@ def test_missing_configuration_fails_with_a_readable_message(monkeypatch, missin
 
     monkeypatch.setenv(missing_var, PRODUCTION_ENV.get(missing_var, "postgresql://u:p@h:5432/x"))
     importlib.reload(importlib.import_module("config.settings.production"))
+
+
+def test_image_build_can_import_production_settings(monkeypatch):
+    """collectstatic runs at image build time with a deliberately bare
+    environment. A configuration guard that demands more than the build supplies
+    breaks the build itself, which is exactly what happened once."""
+    import re
+
+    root = Path(__file__).resolve().parents[4]
+    dockerfile = (root / "Dockerfile").read_text(encoding="utf-8")
+    # Join backslash continuations so each RUN is one logical line.
+    commands = dockerfile.replace("\\\n", " ").splitlines()
+    run_step = next(
+        line
+        for line in commands
+        if line.startswith("RUN ") and "collectstatic" in line
+    )
+
+    build_env = dict(re.findall(r"([A-Z][A-Z_]+)=(\S+)", run_step))
+    assert "DJANGO_SECRET_KEY" in build_env, "build step must define a secret key"
+
+    for key in ("DJANGO_SECRET_KEY", "DJANGO_ALLOWED_HOSTS", "DATABASE_URL",
+                "DJANGO_CSRF_TRUSTED_ORIGINS", "POSTGRES_HOST",
+                "RENDER_EXTERNAL_HOSTNAME", "RAILWAY_PUBLIC_DOMAIN"):
+        monkeypatch.delenv(key, raising=False)
+    for key, value in build_env.items():
+        monkeypatch.setenv(key, value)
+
+    # Must not raise: the build has no database and does not need one.
+    importlib.reload(importlib.import_module("config.settings.production"))

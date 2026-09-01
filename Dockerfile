@@ -34,10 +34,13 @@ COPY --from=frontend /app/dist /app/spa
 WORKDIR /app/backend
 
 # collectstatic needs the manifest storage to run, so give it the throwaway
-# values the build has no business knowing. Nothing here reaches runtime.
+# values the build has no business knowing. Nothing here reaches runtime, and
+# nothing here is contacted: collectstatic only writes files. DATABASE_URL is
+# listed because production settings refuse to import without one.
 RUN DJANGO_SECRET_KEY=build-only \
     DJANGO_ALLOWED_HOSTS=localhost \
     DJANGO_SECURE_SSL_REDIRECT=false \
+    DATABASE_URL=postgresql://build:build@127.0.0.1:5432/build \
     python manage.py collectstatic --noinput --clear
 
 # One worker by default: without a Redis channel layer, live match updates are
