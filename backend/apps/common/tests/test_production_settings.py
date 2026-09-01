@@ -10,6 +10,9 @@ PRODUCTION_ENV = {
     "DJANGO_SECRET_KEY": "test-only",
     "DJANGO_ALLOWED_HOSTS": "leaguehub.example",
     "DJANGO_CSRF_TRUSTED_ORIGINS": "https://leaguehub.example",
+    # Stands in for the Compose path, where the database arrives as discrete
+    # variables rather than as one URL.
+    "POSTGRES_HOST": "db.example",
 }
 
 
@@ -152,3 +155,27 @@ def test_render_blueprint_targets_the_free_plan_and_seeds_on_start():
     # The database is deliberately not a Render one: a free Render Postgres is
     # deleted 30 days after creation.
     assert "databases:" not in blueprint
+
+
+@pytest.mark.parametrize(
+    "missing_var", ["DJANGO_SECRET_KEY", "DATABASE_URL"]
+)
+def test_missing_configuration_fails_with_a_readable_message(monkeypatch, missing_var):
+    """A KeyError inside gunicorn's import stack reads as a crash, not as a
+    configuration mistake. It cost a failed deploy to find that out."""
+    from django.core.exceptions import ImproperlyConfigured
+
+    for key, value in PRODUCTION_ENV.items():
+        monkeypatch.setenv(key, value)
+    monkeypatch.setenv("DATABASE_URL", "postgresql://u:p@db.example:5432/x")
+    monkeypatch.delenv("POSTGRES_HOST", raising=False)
+    monkeypatch.delenv(missing_var, raising=False)
+
+    with pytest.raises(ImproperlyConfigured) as failure:
+        importlib.reload(importlib.import_module("config.settings.production"))
+
+    assert missing_var in str(failure.value)
+    assert "README" in str(failure.value)
+
+    monkeypatch.setenv(missing_var, PRODUCTION_ENV.get(missing_var, "postgresql://u:p@h:5432/x"))
+    importlib.reload(importlib.import_module("config.settings.production"))

@@ -2,9 +2,37 @@
 
 import os
 
+from django.core.exceptions import ImproperlyConfigured
+
 from .base import *  # noqa: F403
 from .base import _env_bool, _env_list
 
+
+def _require_environment():
+    """Fail with a legible message rather than a KeyError inside a traceback.
+
+    A missing variable surfaces during Django setup, which means it arrives
+    buried in the application server's import stack where it reads as a crash
+    rather than as a configuration mistake.
+    """
+    missing = []
+    if not os.getenv("DJANGO_SECRET_KEY"):
+        missing.append("DJANGO_SECRET_KEY")
+    # Either a managed connection string or the discrete Compose variables.
+    if not os.getenv("DATABASE_URL") and not os.getenv("POSTGRES_HOST"):
+        missing.append("DATABASE_URL (or POSTGRES_HOST)")
+    if missing:
+        raise ImproperlyConfigured(
+            "Cannot start: missing required environment "
+            f"variable(s): {', '.join(missing)}. "
+            "See the production environment table in README.md. On Render, "
+            "these come from render.yaml only when the service is created as a "
+            "Blueprint; a service created directly from the repository needs "
+            "them set by hand."
+        )
+
+
+_require_environment()
 
 DEBUG = False
 SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
