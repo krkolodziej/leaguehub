@@ -17,7 +17,7 @@ export function NotificationsMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        className="relative grid size-9 place-items-center rounded-[2px] text-ink-muted hover:bg-ink/5 hover:text-ink"
+        className="relative grid size-9 place-items-center rounded-[var(--radius-control)] text-ink-muted transition-colors hover:bg-ink/[0.06] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pitch/40"
         aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
       >
         <Bell className="size-[18px]" aria-hidden="true" />

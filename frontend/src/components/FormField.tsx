@@ -26,7 +26,7 @@ export function FormField({ id, label, error, hint, ...inputProps }: FormFieldPr
         {...inputProps}
       />
       {error && (
-        <span className="text-xs font-medium text-ink" id={`${id}-error`}>
+        <span className="border-l-2 border-ink pl-2 text-xs font-medium text-ink" id={`${id}-error`}>
           {error}
         </span>
       )}

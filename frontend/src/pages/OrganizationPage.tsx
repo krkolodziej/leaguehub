@@ -1,3 +1,4 @@
+import { ChevronRight } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
@@ -6,15 +7,17 @@ import { EmptyState } from '../components/EmptyState'
 import { ErrorState } from '../components/ErrorState'
 import { LoadingState } from '../components/LoadingState'
 import { PageHeading } from '../components/PageHeading'
+import { SectionHeading } from '../components/SectionHeading'
 import { TeamCrest } from '../components/TeamCrest'
 import { LeagueForm, PlayerForm, RosterForm, SeasonForm, SeasonTeamForm, TeamForm } from '../components/ManagementForms'
 import { useOrganizations } from '../lib/organizations'
 import { useLeagues, usePlayers, useRoster, useSeasonTeams, useSeasons, useTeams } from '../lib/management'
+import { cn } from '../lib/utils'
 
 type Query = { isPending: boolean; isError: boolean; error: unknown; refetch: () => unknown }
 
 const SELECT_CLASS =
-  'h-9 rounded-[2px] border border-chalk bg-paper-raised px-3 font-condensed text-sm font-semibold text-ink focus-visible:border-pitch'
+  'h-9 rounded-[var(--radius-control)] border border-chalk bg-paper-raised px-3 font-condensed text-sm font-semibold text-ink transition-[border-color,box-shadow] duration-150 hover:border-ink-muted/50 focus:border-pitch focus:outline-none focus:ring-2 focus:ring-pitch/25'
 
 export function OrganizationPage() {
   const { organizationId } = useParams()
@@ -66,10 +69,11 @@ export function OrganizationPage() {
                     <span className="block truncate text-sm text-ink-muted">/{league.slug}</span>
                   </span>
                   <Link
-                    className="shrink-0 text-sm font-semibold text-pitch underline-offset-4 hover:underline"
+                    className="inline-flex shrink-0 items-center gap-0.5 text-sm font-semibold text-pitch underline-offset-4 hover:underline"
                     to={`/leagues/${league.id}?organization=${id}`}
                   >
                     Open dashboard
+                    <ChevronRight className="size-3.5" aria-hidden="true" />
                   </Link>
                 </li>
               ))}
@@ -116,11 +120,12 @@ export function OrganizationPage() {
                     </span>
                   </span>
                   <button
-                    className={
+                    className={cn(
+                      'shrink-0 rounded-[var(--radius-control)] px-2.5 py-1 font-condensed text-2xs font-bold uppercase tracking-[0.08em] transition-colors duration-150',
                       selectedSeasonId === season.id
-                        ? 'shrink-0 bg-ink px-2 py-1 font-condensed text-2xs font-semibold uppercase tracking-[0.08em] text-paper'
-                        : 'shrink-0 border border-chalk px-2 py-1 font-condensed text-2xs font-semibold uppercase tracking-[0.08em] text-ink-muted hover:border-ink hover:text-ink'
-                    }
+                        ? 'bg-ink text-paper'
+                        : 'border border-chalk text-ink-muted hover:border-ink hover:text-ink',
+                    )}
                     onClick={() => {
                       setSeasonId(season.id)
                       setSeasonTeamId(undefined)
@@ -136,13 +141,15 @@ export function OrganizationPage() {
         {canManage && selectedLeagueId && <SeasonForm organizationId={id} leagueId={selectedLeagueId} />}
       </Section>
 
-      <div className="grid gap-8 lg:grid-cols-2">
+      {/* Both columns start on the same line: `first:mt-0` only clears the top
+          margin of the first grid child, which dropped the right column. */}
+      <div className="mt-10 grid gap-10 lg:grid-cols-2 [&>section]:mt-0">
         <Section title="Teams" description="Clubs registered to this organization." count={teams.data?.length}>
           <QueryArea query={teams}>
             {(teams.data ?? []).length === 0 ? (
               <EmptyState title="No teams yet" action={canManage ? 'Add clubs below, then attach them to a season.' : 'An administrator needs to add clubs first.'} />
             ) : (
-              <RuledList>
+              <RuledList className="max-h-[26rem] overflow-y-auto">
                 {(teams.data ?? []).map((team) => (
                   <li key={team.id} className="flex items-center gap-3 px-4 py-2.5">
                     <TeamCrest name={team.name} />
@@ -160,7 +167,7 @@ export function OrganizationPage() {
             {(players.data ?? []).length === 0 ? (
               <EmptyState title="No players yet" action={canManage ? 'Add players below before building a season roster.' : 'An administrator needs to add players first.'} />
             ) : (
-              <RuledList className="max-h-96 overflow-y-auto">
+              <RuledList className="max-h-[26rem] overflow-y-auto">
                 {(players.data ?? []).map((player) => (
                   <li key={player.id} className="px-4 py-2.5 text-base">{player.full_name}</li>
                 ))}
@@ -249,16 +256,8 @@ export function OrganizationPage() {
 
 function Section({ title, description, count, children }: { title: string; description: string; count?: number; children: ReactNode }) {
   return (
-    <section className="mt-8 first:mt-0 min-w-0">
-      <div className="mb-3 flex items-baseline justify-between gap-4 border-b border-chalk pb-1.5">
-        <div>
-          <h2 className="text-lg leading-tight">{title}</h2>
-          <p className="text-sm text-ink-muted">{description}</p>
-        </div>
-        {count !== undefined && (
-          <span className="tabular font-condensed text-sm font-semibold text-ink-muted">{count}</span>
-        )}
-      </div>
+    <section className="mt-10 first:mt-0 min-w-0">
+      <SectionHeading title={title} description={description} count={count} />
       {children}
     </section>
   )
@@ -272,7 +271,12 @@ function QueryArea({ query, children }: { query: Query; children: ReactNode }) {
 
 function RuledList({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <ul className={`divide-y divide-chalk border border-chalk bg-paper-raised ${className ?? ''}`}>
+    <ul
+      className={cn(
+        'divide-y divide-chalk overflow-hidden rounded-[var(--radius-card)] border border-chalk bg-paper-raised shadow-panel',
+        className,
+      )}
+    >
       {children}
     </ul>
   )

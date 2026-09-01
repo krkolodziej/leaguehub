@@ -5,6 +5,7 @@ import { errorMessage } from '../lib/errors'
 import { cn } from '../lib/utils'
 import { Brand } from './Brand'
 import { NotificationsMenu } from './NotificationsMenu'
+import { TeamCrest } from './TeamCrest'
 import { Button } from './ui/button'
 
 export function AppShell() {
@@ -25,27 +26,37 @@ export function AppShell() {
       >
         Skip to content
       </a>
-      <header className="border-b-2 border-ink bg-paper-raised">
-        <div className="mx-auto flex h-14 max-w-[1120px] items-center gap-4 px-4 sm:px-6">
+      {/* The masthead stays put: on a long fixture list the way back is always
+          one click away. */}
+      <header className="sticky top-0 z-40 border-b-2 border-ink bg-paper-raised/90 backdrop-blur supports-[backdrop-filter]:bg-paper-raised/75">
+        <div className="mx-auto flex h-14 max-w-[1120px] items-center gap-3 px-4 sm:gap-5 sm:px-6">
           <Brand />
-          <nav className="flex items-center" aria-label="Main">
+          <nav className="flex h-full items-center" aria-label="Main">
             <NavLink
               to="/dashboard"
               className={({ isActive }) =>
                 cn(
-                  'border-b-2 px-1 pb-1 pt-1.5 font-condensed text-sm font-semibold',
-                  isActive ? 'border-pitch text-ink' : 'border-transparent text-ink-muted hover:text-ink',
+                  'relative flex h-full items-center px-1 font-condensed text-sm font-semibold transition-colors',
+                  'after:absolute after:inset-x-0 after:bottom-0 after:h-[3px] after:transition-colors',
+                  isActive
+                    ? 'text-ink after:bg-pitch'
+                    : 'text-ink-muted after:bg-transparent hover:text-ink hover:after:bg-chalk',
                 )
               }
             >
               Dashboard
             </NavLink>
           </nav>
-          <div className="ml-auto flex items-center gap-2 sm:gap-3">
+          <div className="ml-auto flex items-center gap-1 sm:gap-2">
             <NotificationsMenu />
-            <span className="hidden max-w-[16ch] truncate text-sm text-ink-muted md:inline">
-              {displayName}
-            </span>
+            {displayName && (
+              <span className="hidden items-center gap-2 pl-1 pr-1 sm:flex sm:pr-2">
+                <TeamCrest name={displayName} size="sm" />
+                <span className="hidden max-w-[16ch] truncate text-sm text-ink-muted md:inline">
+                  {displayName}
+                </span>
+              </span>
+            )}
             <Button variant="ghost" size="sm" onClick={handleLogout} disabled={logoutMutation.isPending}>
               {logoutMutation.isPending ? 'Signing out…' : 'Sign out'}
             </Button>
@@ -60,7 +71,7 @@ export function AppShell() {
           </p>
         )}
       </header>
-      <main id="main" className="mx-auto max-w-[1120px] px-4 py-6 sm:px-6 sm:py-8">
+      <main id="main" className="mx-auto max-w-[1120px] px-4 py-7 sm:px-6 sm:py-9">
         <Outlet />
       </main>
     </div>

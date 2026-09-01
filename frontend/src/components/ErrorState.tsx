@@ -8,7 +8,10 @@ type ErrorStateProps = { error: unknown; retry?: () => void }
  */
 export function ErrorState({ error, retry }: ErrorStateProps) {
   return (
-    <div className="border-l-[3px] border-ink bg-paper-raised px-4 py-3" role="alert">
+    <div
+      className="rounded-r-[var(--radius-card)] border border-l-[3px] border-chalk border-l-ink bg-paper-raised px-4 py-3.5 shadow-panel"
+      role="alert"
+    >
       <p className="font-condensed text-base font-semibold text-ink">That did not work</p>
       <p className="mt-1 text-sm text-ink-muted">{errorMessage(error)}</p>
       {retry && (
