@@ -6,11 +6,14 @@ export function Input({ className, ...props }: ComponentProps<'input'>) {
   return (
     <input
       className={cn(
-        'h-10 w-full rounded-[2px] border border-chalk bg-paper-raised px-3 text-base text-ink',
+        'h-10 w-full rounded-[var(--radius-control)] border border-chalk bg-paper-raised px-3 text-base text-ink',
+        'transition-[border-color,box-shadow] duration-150',
         'placeholder:text-ink-muted/70',
-        'focus-visible:border-pitch focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-pitch',
-        'aria-[invalid=true]:border-ink aria-[invalid=true]:border-2',
-        'disabled:cursor-not-allowed disabled:opacity-60',
+        'hover:border-ink-muted/50',
+        // A ring rather than an outline: the box never shifts when it takes focus.
+        'focus:border-pitch focus:outline-none focus:ring-2 focus:ring-pitch/25',
+        'aria-[invalid=true]:border-ink aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-ink/15',
+        'disabled:cursor-not-allowed disabled:bg-paper disabled:opacity-60',
         className,
       )}
       {...props}

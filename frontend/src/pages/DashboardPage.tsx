@@ -1,3 +1,4 @@
+import { ChevronRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { EmptyState } from '../components/EmptyState'
@@ -28,21 +29,24 @@ export function DashboardPage() {
           action="Create one below to start a league. You will be its owner, and can invite administrators afterwards."
         />
       ) : (
-        <ul className="grid gap-px border border-chalk bg-chalk sm:grid-cols-2">
+        /* Separate tiles rather than one ruled grid: with an odd number of
+           organizations a ruled grid leaves an empty lit cell beside the last
+           one, which reads as a missing card. */
+        <ul className="grid gap-3 sm:grid-cols-2">
           {organizations.map((organization) => (
-            <li key={organization.id} className="min-w-0 bg-paper-raised">
+            <li key={organization.id} className="min-w-0">
               <Link
-                className="flex items-center gap-3 px-4 py-4 hover:bg-pitch-wash"
+                className="group flex h-full items-center gap-3.5 rounded-[var(--radius-card)] border border-chalk bg-paper-raised px-4 py-4 shadow-panel transition-[border-color,box-shadow,transform] duration-150 hover:border-pitch/45 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pitch/40"
                 to={`/organizations/${organization.id}`}
               >
                 <TeamCrest name={organization.name} size="lg" />
-                <span className="min-w-0">
-                  <span className="flex items-baseline gap-2">
+                <span className="min-w-0 flex-1">
+                  <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <span className="min-w-0 truncate font-condensed text-lg font-semibold text-ink">
                       {organization.name}
                     </span>
                     {organization.my_role && (
-                      <span className="shrink-0 border border-chalk px-1.5 font-condensed text-2xs font-semibold uppercase tracking-[0.08em] text-ink-muted">
+                      <span className="shrink-0 rounded-[var(--radius-control)] bg-pitch-wash px-1.5 py-0.5 font-condensed text-2xs font-bold uppercase tracking-[0.08em] text-pitch-dark">
                         {organization.my_role.toLowerCase()}
                       </span>
                     )}
@@ -51,12 +55,18 @@ export function DashboardPage() {
                     /{organization.slug}
                   </span>
                 </span>
+                <ChevronRight
+                  className="size-4 shrink-0 text-chalk transition-[color,transform] duration-150 group-hover:translate-x-0.5 group-hover:text-pitch"
+                  aria-hidden="true"
+                />
               </Link>
             </li>
           ))}
         </ul>
       )}
-      <OrganizationForm />
+      <div className="mt-6">
+        <OrganizationForm />
+      </div>
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import { ChevronRight } from 'lucide-react'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 import type { ReactNode } from 'react'
 
@@ -10,6 +11,7 @@ import { MatchStatus } from '../components/MatchStatus'
 import { MatchTimeline } from '../components/MatchTimeline'
 import { PageHeading } from '../components/PageHeading'
 import { ScoreLine } from '../components/ScoreLine'
+import { SectionHeading } from '../components/SectionHeading'
 import { StandingsTable } from '../components/StandingsTable'
 import { TeamCrest } from '../components/TeamCrest'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select'
@@ -89,13 +91,15 @@ export function LeagueDashboardPage() {
         )}
       </PageHeading>
 
-      <nav className="-mt-2 mb-6 flex gap-5 overflow-x-auto border-b border-chalk" aria-label="League sections">
+      <nav className="-mt-3 mb-6 flex gap-1 overflow-x-auto border-b border-chalk" aria-label="League sections">
         {VIEWS.map((tab) => (
           <Link
             key={tab}
             className={cn(
-              'shrink-0 border-b-2 pb-2 font-condensed text-base font-semibold transition-colors',
-              view === tab ? 'border-pitch text-ink' : 'border-transparent text-ink-muted hover:text-ink',
+              'shrink-0 border-b-2 px-3 pb-2.5 pt-1 font-condensed text-base font-semibold transition-colors duration-150',
+              view === tab
+                ? 'border-pitch text-ink'
+                : 'border-transparent text-ink-muted hover:border-chalk hover:text-ink',
             )}
             aria-current={view === tab ? 'page' : undefined}
             to={dashboardPath(leagueId, tab, organizationId, seasonId)}
@@ -167,8 +171,8 @@ export function MatchPage() {
   return (
     <div>
       <BackLink to={dashboardPath(leagueId, 'fixtures', organizationId, seasonId)}>Fixtures</BackLink>
-      <section className="border border-chalk bg-paper-raised">
-        <div className="flex items-center justify-between gap-3 border-b border-chalk px-4 py-2">
+      <section className="overflow-hidden rounded-[var(--radius-card)] border border-chalk bg-paper-raised shadow-panel">
+        <div className="flex items-center justify-between gap-3 border-b border-chalk bg-paper/60 px-4 py-2">
           <MatchStatus status={item.status} />
           {item.status === 'LIVE' && (
             <span className="text-2xs text-ink-muted">
@@ -188,24 +192,30 @@ export function MatchPage() {
         </div>
       </section>
 
-      <Panel title="Match events" description="Goals and cards, arriving without a refresh while a match is live.">
-        <QueryArea query={events}>
-          {(events.data ?? []).length === 0 ? (
-            <EmptyState
-              title="Nothing has happened yet"
-              action={played ? 'Goals and cards will appear here as officials record them.' : 'Events appear once this match kicks off.'}
-            />
-          ) : (
-            <MatchTimeline
-              events={events.data ?? []}
-              homeTeamId={item.home_team_id}
-              homeTeamName={item.home_team_name}
-              awayTeamName={item.away_team_name}
-              playerNames={playerNames}
-            />
-          )}
-        </QueryArea>
-      </Panel>
+      <div className="mt-8">
+        <Panel title="Match events" description="Goals and cards, arriving without a refresh while a match is live.">
+          <QueryArea query={events}>
+            {(events.data ?? []).length === 0 ? (
+              <EmptyState
+                title="Nothing has happened yet"
+                action={played ? 'Goals and cards will appear here as officials record them.' : 'Events appear once this match kicks off.'}
+              />
+            ) : (
+              /* The timeline masks its own axis with `paper-raised`, so it has to
+                 sit on that surface rather than straight on the page ground. */
+              <div className="rounded-[var(--radius-card)] border border-chalk bg-paper-raised px-4 py-3 shadow-panel sm:px-6">
+                <MatchTimeline
+                  events={events.data ?? []}
+                  homeTeamId={item.home_team_id}
+                  homeTeamName={item.home_team_name}
+                  awayTeamName={item.away_team_name}
+                  playerNames={playerNames}
+                />
+              </div>
+            )}
+          </QueryArea>
+        </Panel>
+      </div>
     </div>
   )
 }
@@ -283,7 +293,6 @@ function OverviewView({ fixtures, matches, standings, scorers, queries, organiza
               {recent.map((match) => (
                 <li key={match.id}>
                   <FixtureRow
-                    round={0}
                     homeTeam={match.home_team_name}
                     awayTeam={match.away_team_name}
                     kickoff={match.finished_at}
@@ -335,12 +344,15 @@ function FixturesView({ fixtures, matches, query, organizationId, leagueId, seas
           <div className="space-y-6">
             {[...rounds.entries()].map(([round, roundFixtures]) => (
               <section key={round}>
-                <h3 className="mb-1.5 font-condensed text-sm font-semibold text-ink-muted">Round {round}</h3>
+                <h3 className="mb-2 font-condensed text-2xs font-bold uppercase tracking-[0.09em] text-ink-muted">
+                  Round {round}
+                </h3>
                 <RuledList>
                   {roundFixtures.map((fixture) => (
                     <li key={fixture.id}>
+                      {/* No round marker inside a round group: the heading above
+                          already says which round this is. */}
                       <FixtureRow
-                        round={fixture.round_number}
                         homeTeam={fixture.home_team_name}
                         awayTeam={fixture.away_team_name}
                         kickoff={fixture.scheduled_at}
@@ -380,9 +392,12 @@ function TeamsView({ teams, query }: { teams: SeasonTeam[]; query: Query }) {
         {teams.length === 0 ? (
           <EmptyState title="No clubs registered" action="Attach clubs to this season from the organization page, then generate fixtures." />
         ) : (
-          <ul className="grid gap-px border border-chalk bg-chalk sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {teams.map((team) => (
-              <li key={team.id} className="flex items-center gap-3 bg-paper-raised px-4 py-3">
+              <li
+                key={team.id}
+                className="flex min-w-0 items-center gap-3 rounded-[var(--radius-card)] border border-chalk bg-paper-raised px-4 py-3 shadow-panel"
+              >
                 <TeamCrest name={team.team_name} size="lg" />
                 <span className="min-w-0 truncate font-condensed text-base font-semibold text-ink">{team.team_name}</span>
               </li>
@@ -417,9 +432,9 @@ function StatisticsView({ statistics, topScorers, statisticsQuery, scorersQuery 
           {statistics.length === 0 ? (
             <EmptyState title="No statistics yet" action="These fill in from match events as results are recorded." />
           ) : (
-            <div className="overflow-x-auto border border-chalk bg-paper-raised">
+            <div className="max-h-[32rem] overflow-auto rounded-[var(--radius-card)] border border-chalk bg-paper-raised shadow-panel">
               <table className="w-full border-collapse text-sm">
-                <thead>
+                <thead className="sticky top-0 z-10 bg-paper-raised">
                   <tr className="border-b-2 border-ink">
                     <th scope="col" className="px-3 py-1.5 text-left font-condensed text-2xs font-semibold uppercase tracking-[0.06em] text-ink-muted">Player</th>
                     <th scope="col" className="px-2 py-1.5 text-right font-condensed text-2xs font-semibold uppercase tracking-[0.06em] text-ink-muted">Goals</th>
@@ -435,7 +450,7 @@ function StatisticsView({ statistics, topScorers, statisticsQuery, scorersQuery 
                 </thead>
                 <tbody>
                   {statistics.map((player) => (
-                    <tr key={player.id} className="border-b border-chalk last:border-b-0">
+                    <tr key={player.id} className="border-b border-chalk last:border-b-0 hover:bg-pitch-wash/50">
                       <th scope="row" className="px-3 py-2 text-left font-normal">{player.full_name}</th>
                       <td className="px-2 py-2 text-right font-condensed font-bold tabular-nums">{player.goals}</td>
                       <td className="px-2 py-2 text-right tabular-nums text-ink-muted">{player.yellow_cards}</td>
@@ -485,7 +500,7 @@ function MiniTable({ rows }: { rows: Standing[] }) {
     <RuledList>
       {head.map((row, index) => render(row, index + 1))}
       {tail.length > 0 && (
-        <li className="px-3 py-1 text-center text-2xs text-ink-muted" aria-hidden="true">⋯</li>
+        <li className="bg-paper/60 px-3 py-1 text-center text-2xs text-ink-muted" aria-hidden="true">⋯</li>
       )}
       {tail.map((row, index) => render(row, rows.length - tail.length + index + 1))}
     </RuledList>
@@ -495,17 +510,17 @@ function MiniTable({ rows }: { rows: Standing[] }) {
 function Panel({ title, description, link, children }: { title: string; description?: string; link?: string; children: ReactNode }) {
   return (
     <section className="min-w-0">
-      <div className="mb-3 flex items-baseline justify-between gap-4 border-b border-chalk pb-1.5">
-        <div className="min-w-0">
-          <h2 className="text-lg leading-tight">{title}</h2>
-          {description && <p className="text-sm text-ink-muted">{description}</p>}
-        </div>
+      <SectionHeading title={title} description={description}>
         {link && (
-          <Link className="shrink-0 text-sm font-semibold text-pitch underline-offset-4 hover:underline" to={link}>
+          <Link
+            className="inline-flex items-center gap-0.5 text-sm font-semibold text-pitch underline-offset-4 hover:underline"
+            to={link}
+          >
             View all
+            <ChevronRight className="size-3.5" aria-hidden="true" />
           </Link>
         )}
-      </div>
+      </SectionHeading>
       {children}
     </section>
   )
@@ -517,8 +532,17 @@ function QueryArea({ query, children }: { query: Query; children: ReactNode }) {
   return <>{children}</>
 }
 
-function RuledList({ children }: { children: ReactNode }) {
-  return <ul className="divide-y divide-chalk border border-chalk bg-paper-raised">{children}</ul>
+function RuledList({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <ul
+      className={cn(
+        'divide-y divide-chalk overflow-hidden rounded-[var(--radius-card)] border border-chalk bg-paper-raised shadow-panel',
+        className,
+      )}
+    >
+      {children}
+    </ul>
+  )
 }
 
 function matchHref(match: Match | undefined, organizationId: number, leagueId: number, seasonId: number) {

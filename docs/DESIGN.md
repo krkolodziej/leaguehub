@@ -139,6 +139,47 @@ The zones are marked in the **margin**, not by tinting whole rows. A newspaper p
 rule and a marginal bar; tinted row backgrounds are a spreadsheet idiom and they fight
 the form-guide colours sitting in the same row.
 
+## Surfaces
+
+A boxed surface carries a hairline (`chalk`), a 4px corner, and a shadow that is
+barely off the page:
+
+```
+--shadow-panel: 0 1px 1px rgb(20 23 26 / 0.04), 0 1px 3px rgb(20 23 26 / 0.04);
+--shadow-lift:  0 2px 4px rgb(20 23 26 / 0.06), 0 6px 16px rgb(20 23 26 / 0.07);
+```
+
+This is a deliberate softening of point 1 in the critique below, and it stops
+where that critique starts. The rule "boxes are reserved for things that
+genuinely are discrete objects" is unchanged — the standings table is still
+typeset onto the page with no wrapper, and sections are still separated by rules
+rather than by boxing. What changed is that the objects which *were* already
+boxed had nothing but a `chalk` hairline holding them off a ground only two
+steps darker, and at that separation a panel edge disappears in bright light.
+The shadow does the same job the deeper ground does: it makes a sheet read as a
+sheet. `lift` is reserved for the hover state of a sheet you can click, and for
+menus, which genuinely do float.
+
+Controls — inputs, selects, buttons, chips — take a 3px corner and take focus
+with a ring rather than an outline, so no box moves when it is focused.
+Interactive sheets and rows animate their border and shadow over 150ms. None of
+this touches the "one moving element" rule: those are state changes on hover and
+focus, not animation running on its own. Skeletons stay static, and `LIVE` is
+still the only thing in the product that moves unprompted.
+
+### Forms
+
+Every field is `label / input / (hint or error)`, in that order, and a form grid
+is `items-start`. Nothing is ever placed between a label and its input: a hint
+sitting there pushes that one field down, and the field beside it in the grid
+then no longer lines up. A field wider than the others — a description — spans
+the whole grid rather than leaving a half-row gap.
+
+Repeating collections use either standalone tiles in a gapped grid or one ruled
+list, never a `gap-px` grid over a tinted ground: with an odd count the latter
+leaves a lit empty cell beside the last item, which reads as a card that failed
+to load.
+
 ## Principles
 
 Football hands this interface two things that no project tracker has, and both are load

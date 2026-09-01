@@ -32,6 +32,13 @@
   --text-score: 4rem;
 
   --radius-card: 0.25rem;
+  --radius-control: 0.1875rem;
+
+  /* Elevation is used sparingly: a hairline plus a shadow barely off the page,
+     so a panel reads as a sheet laid on the ground rather than as a floating
+     component-library card. `lift` is the hover state of a clickable sheet. */
+  --shadow-panel: 0 1px 1px rgb(20 23 26 / 0.04), 0 1px 3px rgb(20 23 26 / 0.04);
+  --shadow-lift: 0 2px 4px rgb(20 23 26 / 0.06), 0 6px 16px rgb(20 23 26 / 0.07);
 }
 
 @layer base {

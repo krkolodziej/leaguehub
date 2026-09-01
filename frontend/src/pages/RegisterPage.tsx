@@ -28,7 +28,7 @@ export function RegisterPage() {
       <h1 className="mt-6 text-xl">Create your account</h1>
       <p className="mt-1 text-sm text-ink-muted">Set up a workspace for your league.</p>
       {formError && (
-        <p className="mt-4 border-l-[3px] border-ink px-3 py-2 text-sm font-medium text-ink" role="alert">
+        <p className="mt-4 border-l-[3px] border-ink bg-paper px-3 py-2 text-sm font-medium text-ink" role="alert">
           {formError}
         </p>
       )}

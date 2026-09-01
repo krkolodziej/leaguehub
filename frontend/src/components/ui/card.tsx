@@ -7,7 +7,15 @@ import { cn } from '../../lib/utils'
  * match cards, form panels, crests — never as a wrapper around every section.
  */
 export function Card({ className, ...props }: ComponentProps<'div'>) {
-  return <div className={cn('border border-chalk bg-paper-raised', className)} {...props} />
+  return (
+    <div
+      className={cn(
+        'rounded-[var(--radius-card)] border border-chalk bg-paper-raised shadow-panel',
+        className,
+      )}
+      {...props}
+    />
+  )
 }
 
 export function CardHeader({ className, ...props }: ComponentProps<'div'>) {

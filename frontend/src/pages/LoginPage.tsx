@@ -43,7 +43,7 @@ export function LoginPage() {
       <h1 className="mt-6 text-xl">Sign in to LeagueHub</h1>
       <p className="mt-1 text-sm text-ink-muted">Manage your leagues, fixtures and results.</p>
       {formError && (
-        <p className="mt-4 border-l-[3px] border-ink px-3 py-2 text-sm font-medium text-ink" role="alert">
+        <p className="mt-4 border-l-[3px] border-ink bg-paper px-3 py-2 text-sm font-medium text-ink" role="alert">
           {formError}
         </p>
       )}
@@ -81,7 +81,7 @@ export function LoginPage() {
           <p className="mt-1 text-sm text-ink-muted">
             Sign in to a populated league with the shared demo account.
           </p>
-          <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 border border-chalk bg-paper px-3 py-2 text-sm">
+          <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 rounded-[var(--radius-control)] border border-chalk bg-paper px-3 py-2.5 text-sm">
             <dt className="text-ink-muted">Email</dt>
             <dd className="m-0 select-all font-condensed font-semibold">{demo.email}</dd>
             <dt className="text-ink-muted">Password</dt>

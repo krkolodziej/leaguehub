@@ -30,7 +30,7 @@ export function StandingsTable({ standings, matches, promotion = 3, relegation =
 
   return (
     <figure className="m-0">
-      <div className="relative overflow-x-auto border border-chalk bg-paper-raised">
+      <div className="relative overflow-x-auto rounded-[var(--radius-card)] border border-chalk bg-paper-raised shadow-panel">
         <table className="w-full min-w-[42rem] border-collapse text-sm">
           <caption className="sr-only">
             League standings: position, club, matches played, wins, draws, losses, goals for,
@@ -63,15 +63,16 @@ export function StandingsTable({ standings, matches, promotion = 3, relegation =
                 <tr
                   key={row.team_id}
                   className={cn(
-                    'border-b border-chalk last:border-b-0',
+                    'group border-b border-chalk last:border-b-0',
                     index === promotionCut - 1 && 'border-b-2 border-b-ink',
                     index === relegationCut && 'border-t-2 border-t-ink',
+                    'transition-colors hover:bg-pitch-wash/60',
                   )}
                 >
                   <th
                     scope="row"
                     className={cn(
-                      'sticky left-0 z-10 bg-paper-raised py-2 pr-3 text-left font-normal',
+                      'sticky left-0 z-10 bg-paper-raised py-2 pr-3 text-left font-normal transition-colors group-hover:bg-pitch-wash/60',
                       // The zone marker is a bar in the margin, not a row tint.
                       inPromotion && 'border-l-[3px] border-l-pitch',
                       inRelegation && 'border-l-[3px] border-l-ink',
@@ -98,7 +99,7 @@ export function StandingsTable({ standings, matches, promotion = 3, relegation =
                   <td className="hidden py-2 pl-2 pr-3 sm:table-cell">
                     <FormGuide form={teamForm(matches, row.team_id)} />
                   </td>
-                  <td className={cn(NUM, 'sticky right-0 z-10 border-l border-chalk bg-paper-raised font-condensed text-base font-bold')}>
+                  <td className={cn(NUM, 'sticky right-0 z-10 border-l border-chalk bg-paper-raised font-condensed text-base font-bold transition-colors group-hover:bg-pitch-wash/60')}>
                     {row.pts}
                   </td>
                 </tr>

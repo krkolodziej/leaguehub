@@ -132,4 +132,6 @@ An optional match-report feature was added and reverted the same day
 Later work is recorded in the commit history rather than as numbered stages: a
 realistic `seed_demo` dataset, one-click demo sign-in, a design system applied
 across every view (see [DESIGN.md](DESIGN.md)), and the single-service
-production deployment configuration.
+production deployment configuration, and a pass over the interface that fixed
+form and grid alignment and gave boxed surfaces a restrained elevation (see
+"Surfaces" in DESIGN.md).
