@@ -278,6 +278,24 @@ to rebuild the dataset deliberately.
 `RAILWAY_PUBLIC_DOMAIN` is injected by the platform and picked up
 automatically, so there is no second deploy just to register the hostname.
 
+### Continuous deployment
+
+A merge to `main` ships itself. Render watches the repository and, with
+`autoDeployTrigger: checksPass`, waits for the GitHub checks on that commit
+before building — so a red suite stops the deploy instead of shipping past it.
+
+The `image` job in [CI](.github/workflows/ci.yml) builds the deployment
+`Dockerfile` on every push. The unit suites can pass against source the image
+still fails to build: `collectstatic` runs during the build with a deliberately
+bare environment, and a settings change once broke it there and nowhere else.
+
+The container applies migrations and seeds on start, so a schema change ships
+with its own migration and needs no manual step.
+
+> A service created directly from the repository rather than as a Blueprint does
+> not read `render.yaml`. Set **Settings → Auto-Deploy → After CI Checks Pass**
+> in the dashboard for that service.
+
 ### Production environment
 
 | Variable | Required | Value |

@@ -14,7 +14,9 @@ services:
     region: frankfurt
     dockerfilePath: ./Dockerfile
     healthCheckPath: /api/v1/health/
-    autoDeployTrigger: commit
+    # Wait for GitHub checks before shipping. With "commit" a red build still
+    # deploys, which is how a broken image reached production once.
+    autoDeployTrigger: checksPass
     envVars:
       - key: DJANGO_SECRET_KEY
         generateValue: true

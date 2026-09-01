@@ -47,6 +47,16 @@ jobs:
       - run: pnpm test
       - run: pnpm build
 
+  image:
+    name: Production image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Builds the SPA, installs the backend and runs collectstatic exactly as
+      # the deployment does. A build-time regression here fails the check
+      # instead of failing the deploy.
+      - run: docker build -t leaguehub:ci .
+
   e2e:
     name: Frontend E2E smoke
     runs-on: ubuntu-latest

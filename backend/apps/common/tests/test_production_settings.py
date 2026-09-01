@@ -155,6 +155,17 @@ def test_render_blueprint_targets_the_free_plan_and_seeds_on_start():
     # The database is deliberately not a Render one: a free Render Postgres is
     # deleted 30 days after creation.
     assert "databases:" not in blueprint
+    # A red build must not reach production.
+    assert "autoDeployTrigger: checksPass" in blueprint
+
+
+def test_ci_builds_the_deployment_image():
+    """The suites all pass against source that the image still fails to build,
+    as a broken collectstatic step proved. CI has to build it too."""
+    root = Path(__file__).resolve().parents[4]
+    workflow = (root / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+
+    assert "docker build" in workflow
 
 
 @pytest.mark.parametrize(
